@@ -238,7 +238,8 @@ FPS_GT511::FPS_GT511(int port, int baud, const char * mode) {
 		_baud_rate = baud;
 		_mode = mode;
         _available = true;
-	}
+        _mutex = PTHREAD_MUTEX_INITIALIZER;
+    }
     _open = false;
 }
 
@@ -316,23 +317,19 @@ bool FPS_GT511::SetLED(bool on)
 {
     if(!_available)
         return false;
-    if(_led == on)
-        return true;
     
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::CmosLed;
 	if (on)
 	{
 		if (UseSerialDebug) 
-            //~ Serial.println("FPS - LED on");
-            printf("FPS - LED on");
+            printf("FPS - LED on\n");
 		cp->Parameter[0] = 0x01;
 	}
 	else
 	{
 		if (UseSerialDebug) 
-            //~ Serial.println("FPS - LED off");
-            printf("FPS - LED off");
+            printf("FPS - LED off\n");
 		cp->Parameter[0] = 0x00;
 	}
 	cp->Parameter[1] = 0x00;
@@ -343,12 +340,12 @@ bool FPS_GT511::SetLED(bool on)
 	Response_Packet* rp = GetResponse();
 	bool retval = true;
 	if (rp->ACK == false) retval = false;
-    else _led = on;
-	delete rp;
+
+    delete rp;
 	delete packetbytes;
 	delete cp;
 	return retval;
-};
+}
 
 // Changes the baud rate of the connection
 // Parameter: 9600, 19200, 38400, 57600, 115200
@@ -952,10 +949,15 @@ void FPS_GT511::StartDataDownload()
 // Sends the command to the software serial channel
 void FPS_GT511::SendCommand(byte cmd[], int length)
 {
+    pthread_mutex_lock(&_mutex);
+    
 	//~ _serial.write(cmd, length);
 	for(int i = 0; i < length; i++)
 		RS232_SendByte(_com_port, cmd[i]);
 	
+    pthread_mutex_unlock(&_mutex);
+    
+    
 	if (UseSerialDebug)
 	{
         //~ Serial.print("FPS - SEND: ");
@@ -967,36 +969,40 @@ void FPS_GT511::SendCommand(byte cmd[], int length)
 };
 
 // Gets the response to the command from the software serial channel (and waits for it)
-Response_Packet* FPS_GT511::GetResponse()
-{
+Response_Packet* FPS_GT511::GetResponse() {
     int n;
     byte* resp = new byte[RESPONSE_LEN];
     byte* buffer = new byte[RESPONSE_LEN];
 
+    pthread_mutex_lock(&_mutex);
+    
     int index = 0;
     while(index < RESPONSE_LEN) {
         n = RS232_PollComport(_com_port, buffer, RESPONSE_LEN);
         if(n == RESPONSE_LEN && buffer[0] == Response_Packet::COMMAND_START_CODE_1) {
             if(UseSerialDebug)
-                printf("FULL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
+                printf("FULL - RS232_PollComport read %d bytes.\n", n);
             memcpy(resp, buffer, RESPONSE_LEN);
             index += n;
         }
         else if(n < RESPONSE_LEN && n > 0) {
             if(UseSerialDebug)
-                printf("PARTIAL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
+                printf("PARTIAL - RS232_PollComport read %d bytes.\n", n);
             memcpy(resp + index, buffer, n);
             index += n;
         }
         else {
-            usleep(10*1000);
+            usleep(10 * 1000);
         }
     }
+    
+    pthread_mutex_unlock(&_mutex);
+
 
 	Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
 	delete resp;
-	if (UseSerialDebug) 
-	{
+    delete buffer;
+	if (UseSerialDebug)	{
         printf("FPS - RECV: ");
 		SendToSerial(rp->RawBytes, 12);
         printf("\n\n");
@@ -1005,26 +1011,29 @@ Response_Packet* FPS_GT511::GetResponse()
 }
 
 
-byte * FPS_GT511::GetResponse(int aExpectedByteCount)
-{
+byte * FPS_GT511::GetResponse(int aExpectedByteCount) {
+
+    
     bool done = false;
     
     int n;
     byte * resp = new byte[aExpectedByteCount];
     byte * buffer = new byte[aExpectedByteCount];
+
+    pthread_mutex_lock(&_mutex);
     
     int index = 0;
     while(done == false) {
         n = RS232_PollComport(_com_port, buffer, aExpectedByteCount);
         if(n == aExpectedByteCount) {
             if(UseSerialDebug)
-                printf("FULL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
+                printf("FULL - RS232_PollComport read %d bytes.\n", n);
             done = true;
             memcpy(resp, buffer, aExpectedByteCount);
         }
         else if(n < aExpectedByteCount && n > 0) {
             if(UseSerialDebug)
-                printf("PARTIAL RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
+                printf("PARTIAL RS232_PollComport read %d bytes.\n", n);
             memcpy(resp + index, buffer, n);
             index += n;
             if(index == aExpectedByteCount)
@@ -1034,6 +1043,8 @@ byte * FPS_GT511::GetResponse(int aExpectedByteCount)
             usleep(10 * 1000);
         }
     }
+    
+    pthread_mutex_unlock(&_mutex);
     return resp;
 }
 

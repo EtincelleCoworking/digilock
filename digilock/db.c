@@ -255,27 +255,6 @@ int db_count_users() {
 }
 
 
-//int db_get_users() {
-//    int _id = -1, rc = 0;
-//    sqlite3_stmt * stmt;
-//    char sql[256];
-//    sprintf(sql,
-//        "SELECT (%s) FROM %s ORDER BY %s;",
-//        TABLE_USER_EMAIL,
-//        TABLE_USER,
-//        TABLE_USER_EMAIL);
-
-//    sqlite3_prepare(db, sql, strlen(sql) + 1, &stmt, NULL);
-//    while(sqlite3_step(stmt) == SQLITE_ROW) {
-//        char * fname = sqlite3_column_text(stmt, 0);
-//        char * lname = sqlite3_column_text(stmt, 0);
-//    }
-//    sqlite3_finalize(stmt);
-
-//    return _id;
-//}
-
-
 int db_insert_user(char * aEmail) {
 	int rc;
 	char sql[256];

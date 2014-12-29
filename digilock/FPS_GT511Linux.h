@@ -13,6 +13,9 @@
 #include <stdio.h>
 #include "rs232.h"
 #include "ports.h"
+#include <pthread.h>
+
+
 typedef uint8_t byte;
 typedef uint16_t word;
 typedef bool boolean;
@@ -359,7 +362,7 @@ private:
     int _baud_rate;
     bool _available;
     bool _open;
-    bool _led;
+    pthread_mutex_t _mutex;
     const char * _mode;
 };
 
