@@ -1,0 +1,279 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09A1A4401A4FF43300B55324 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */; };
+		09A1A4421A4FF43900B55324 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A4411A4FF43900B55324 /* libcurl.dylib */; };
+		6122FAE81A513D8F008C2D43 /* db.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FADD1A513D8F008C2D43 /* db.c */; };
+		6122FAE91A513D8F008C2D43 /* FPS_GT511Linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FADF1A513D8F008C2D43 /* FPS_GT511Linux.cpp */; };
+		6122FAEA1A513D8F008C2D43 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE11A513D8F008C2D43 /* main.cpp */; };
+		6122FAEB1A513D8F008C2D43 /* req.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE31A513D8F008C2D43 /* req.c */; };
+		6122FAEC1A513D8F008C2D43 /* rs232.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE51A513D8F008C2D43 /* rs232.c */; };
+		6122FAED1A513D8F008C2D43 /* smtp-mail.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE71A513D8F008C2D43 /* smtp-mail.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		09A1A4221A4FF31000B55324 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		09A1A4241A4FF31000B55324 /* digilock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = digilock; sourceTree = BUILT_PRODUCTS_DIR; };
+		09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		09A1A4411A4FF43900B55324 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
+		6122FADD1A513D8F008C2D43 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = db.c; path = digilock/db.c; sourceTree = SOURCE_ROOT; };
+		6122FADE1A513D8F008C2D43 /* db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = db.h; path = digilock/db.h; sourceTree = SOURCE_ROOT; };
+		6122FADF1A513D8F008C2D43 /* FPS_GT511Linux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPS_GT511Linux.cpp; path = digilock/FPS_GT511Linux.cpp; sourceTree = SOURCE_ROOT; };
+		6122FAE01A513D8F008C2D43 /* FPS_GT511Linux.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FPS_GT511Linux.h; path = digilock/FPS_GT511Linux.h; sourceTree = SOURCE_ROOT; };
+		6122FAE11A513D8F008C2D43 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = digilock/main.cpp; sourceTree = SOURCE_ROOT; };
+		6122FAE21A513D8F008C2D43 /* ports.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ports.h; path = digilock/ports.h; sourceTree = SOURCE_ROOT; };
+		6122FAE31A513D8F008C2D43 /* req.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = req.c; path = digilock/req.c; sourceTree = SOURCE_ROOT; };
+		6122FAE41A513D8F008C2D43 /* req.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = req.h; path = digilock/req.h; sourceTree = SOURCE_ROOT; };
+		6122FAE51A513D8F008C2D43 /* rs232.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = rs232.c; path = digilock/rs232.c; sourceTree = SOURCE_ROOT; };
+		6122FAE61A513D8F008C2D43 /* rs232.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rs232.h; path = digilock/rs232.h; sourceTree = SOURCE_ROOT; };
+		6122FAE71A513D8F008C2D43 /* smtp-mail.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "smtp-mail.c"; path = "digilock/smtp-mail.c"; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		09A1A4211A4FF31000B55324 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				09A1A4421A4FF43900B55324 /* libcurl.dylib in Frameworks */,
+				09A1A4401A4FF43300B55324 /* libsqlite3.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		09A1A41B1A4FF31000B55324 = {
+			isa = PBXGroup;
+			children = (
+				09A1A4411A4FF43900B55324 /* libcurl.dylib */,
+				09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */,
+				09A1A4261A4FF31000B55324 /* digilock */,
+				09A1A4251A4FF31000B55324 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		09A1A4251A4FF31000B55324 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				09A1A4241A4FF31000B55324 /* digilock */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		09A1A4261A4FF31000B55324 /* digilock */ = {
+			isa = PBXGroup;
+			children = (
+				6122FADD1A513D8F008C2D43 /* db.c */,
+				6122FADE1A513D8F008C2D43 /* db.h */,
+				6122FADF1A513D8F008C2D43 /* FPS_GT511Linux.cpp */,
+				6122FAE01A513D8F008C2D43 /* FPS_GT511Linux.h */,
+				6122FAE11A513D8F008C2D43 /* main.cpp */,
+				6122FAE21A513D8F008C2D43 /* ports.h */,
+				6122FAE31A513D8F008C2D43 /* req.c */,
+				6122FAE41A513D8F008C2D43 /* req.h */,
+				6122FAE51A513D8F008C2D43 /* rs232.c */,
+				6122FAE61A513D8F008C2D43 /* rs232.h */,
+				6122FAE71A513D8F008C2D43 /* smtp-mail.c */,
+			);
+			name = digilock;
+			path = gt511osx;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		09A1A4231A4FF31000B55324 /* digilock */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 09A1A42B1A4FF31000B55324 /* Build configuration list for PBXNativeTarget "digilock" */;
+			buildPhases = (
+				09A1A4201A4FF31000B55324 /* Sources */,
+				09A1A4211A4FF31000B55324 /* Frameworks */,
+				09A1A4221A4FF31000B55324 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = digilock;
+			productName = gt511osx;
+			productReference = 09A1A4241A4FF31000B55324 /* digilock */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		09A1A41C1A4FF31000B55324 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0610;
+				ORGANIZATIONNAME = etincelle;
+				TargetAttributes = {
+					09A1A4231A4FF31000B55324 = {
+						CreatedOnToolsVersion = 6.1.1;
+					};
+				};
+			};
+			buildConfigurationList = 09A1A41F1A4FF31000B55324 /* Build configuration list for PBXProject "digilock" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 09A1A41B1A4FF31000B55324;
+			productRefGroup = 09A1A4251A4FF31000B55324 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				09A1A4231A4FF31000B55324 /* digilock */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		09A1A4201A4FF31000B55324 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6122FAEC1A513D8F008C2D43 /* rs232.c in Sources */,
+				6122FAE81A513D8F008C2D43 /* db.c in Sources */,
+				6122FAE91A513D8F008C2D43 /* FPS_GT511Linux.cpp in Sources */,
+				6122FAEB1A513D8F008C2D43 /* req.c in Sources */,
+				6122FAED1A513D8F008C2D43 /* smtp-mail.c in Sources */,
+				6122FAEA1A513D8F008C2D43 /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		09A1A4291A4FF31000B55324 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		09A1A42A1A4FF31000B55324 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		09A1A42C1A4FF31000B55324 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = digilock;
+			};
+			name = Debug;
+		};
+		09A1A42D1A4FF31000B55324 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = digilock;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		09A1A41F1A4FF31000B55324 /* Build configuration list for PBXProject "digilock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09A1A4291A4FF31000B55324 /* Debug */,
+				09A1A42A1A4FF31000B55324 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		09A1A42B1A4FF31000B55324 /* Build configuration list for PBXNativeTarget "digilock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09A1A42C1A4FF31000B55324 /* Debug */,
+				09A1A42D1A4FF31000B55324 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 09A1A41C1A4FF31000B55324 /* Project object */;
+}

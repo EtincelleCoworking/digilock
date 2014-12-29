@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>DBF122D2-EE1D-476D-95E2-62951CA2FC05</string>
+	<key>IDESourceControlProjectName</key>
+	<string>gt511osx</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>80858313E105F53E2D8DB01A7345CF555D8902C8</key>
+		<string>https://github.com/EtincelleCoworking/sesame.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>gt511/gt511osx.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>80858313E105F53E2D8DB01A7345CF555D8902C8</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/EtincelleCoworking/sesame.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>80858313E105F53E2D8DB01A7345CF555D8902C8</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>80858313E105F53E2D8DB01A7345CF555D8902C8</string>
+			<key>IDESourceControlWCCName</key>
+			<string>sesame</string>
+		</dict>
+	</array>
+</dict>
+</plist>
