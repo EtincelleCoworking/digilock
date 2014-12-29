@@ -7,6 +7,7 @@
 */
 
 #include "FPS_GT511Linux.h"
+#include "bitmap.h"
 
 // #pragma region -= Command_Packet Definitions =-
 
@@ -223,25 +224,22 @@ bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue
 
 // #pragma region -= Constructor/Destructor =-
 // Creates a new object to interface with the fingerprint scanner
-//~ FPS_GT511::FPS_GT511(uint8_t rx, uint8_t tx)
-    //~ /*: _serial(rx,tx) */
-//~ {
-    //~ pin_RX = rx;
-    //~ pin_TX = tx;
-    //~
-    //~ this->UseSerialDebug = true;
-//~ };
 
+
+#define RESPONSE_LEN (12)
 
 FPS_GT511::FPS_GT511(int port, int baud, const char * mode) {
 	if(RS232_OpenComport(port, baud, mode)) {
 		printf("Cannot open Com Port\n");
+        _available = false;
 	}
 	else {
 		_com_port = port;
 		_baud_rate = baud;
-		_mode = mode; 
+		_mode = mode;
+        _available = true;
 	}
+    _open = false;
 }
 
 
@@ -253,10 +251,21 @@ FPS_GT511::~FPS_GT511()
 }
 // #pragma endregion
 
+
+bool FPS_GT511::IsAvailable() {
+    return _available;
+}
+
 // #pragma region -= Device Commands =-
 //Initialises the device and gets ready for commands
 void FPS_GT511::Open()
 {
+    if(_open) {
+        printf("Device already opened.\n");
+        return;
+    }
+        
+    
 	if (UseSerialDebug) 
         //~ Serial.println("FPS - Open");
         printf("FPS - Open\n");
@@ -269,6 +278,7 @@ void FPS_GT511::Open()
 	byte* packetbytes = cp->GetPacketBytes();
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
+    _open = true;
 	delete rp;
 	delete packetbytes;
 }
@@ -277,7 +287,11 @@ void FPS_GT511::Open()
 // Implemented it for completeness.
 void FPS_GT511::Close()
 {
-	if (UseSerialDebug) 
+    if(!_open) {
+        printf("Device already closed.\n");
+        return;
+    }
+	if (UseSerialDebug)
         //~ Serial.println("FPS - Close");
         printf("FPS - Close\n");
 	Command_Packet* cp = new Command_Packet();
@@ -289,6 +303,7 @@ void FPS_GT511::Close()
 	byte* packetbytes = cp->GetPacketBytes();
 	SendCommand(packetbytes, 12);
 	Response_Packet* rp = GetResponse();
+    _open = false;
 	delete rp;
 	delete packetbytes;
 };
@@ -690,7 +705,54 @@ bool FPS_GT511::GetImage()
 //	 may revisit this if I find a need for it
 
 
+    int retcode = 0;
+    
+    if (UseSerialDebug)
+        printf("FPS - GetTemplate\n");
+    Command_Packet* cp = new Command_Packet();
+    cp->Command = Command_Packet::Commands::GetImage;
+    
+    byte* packetbytes = cp->GetPacketBytes();
+    SendCommand(packetbytes, 12);
+    
+    
+#define data_len 52116
+    
+    usleep(100*1000);
+    
+    Response_Packet* rp = GetResponse();
+    
+    if(rp->ACK) {
+        struct {
+            byte startCode1;
+            byte startCode2;
+            word deviceID;
+            byte data[data_len];
+            word checksum;
+        } dp;
+        
+        byte * resp = GetResponse(sizeof(dp));
+        dp.startCode1 = resp[0];
+        dp.startCode2 = resp[1];
+        dp.deviceID = (resp[3] << 8) + resp[2];
+        
+        for(int i = 0; i < data_len; i++)
+            dp.data[i] = resp[i + 2];
+        
+        dp.checksum = (resp[data_len+5] << 8) + resp[data_len+4];
+        
+        char rgb[data_len];
+        for(int i = 0; i < data_len; i++)
+            rgb[i] = resp[data_len + 2];
 
+        const char * file  = "bitmap.bmp";
+        write_bmp(file, 258, 202, rgb);
+    }
+    else {
+        // NACK_INVALID_POS
+        // NACK IS NOT USED
+    }
+    
     return false;
 }
 
@@ -713,6 +775,57 @@ int FPS_GT511::SetTemplate(byte* tmplt, int fgpid, bool duplicateCheck) {
 	//return false;
 //}
 
+
+
+int FPS_GT511::MakeTemplate(int fgpid)
+{
+    int retcode = 0;
+    
+    if (UseSerialDebug)
+        printf("FPS - GetTemplate\n");
+    Command_Packet* cp = new Command_Packet();
+    cp->Command = Command_Packet::Commands::MakeTemplate;
+    cp->ParameterFromInt(fgpid);
+    
+    byte* packetbytes = cp->GetPacketBytes();
+    SendCommand(packetbytes, 12);
+    
+    
+#define data_len 498
+    
+    usleep(100*1000);
+    
+    Response_Packet* rp = GetResponse();
+    
+    if(rp->ACK) {
+        struct {
+            byte startCode1;
+            byte startCode2;
+            word deviceID;
+            byte data[data_len];
+            word checksum;
+        } dp;
+        
+        byte * resp = GetResponse(sizeof(dp));
+        dp.startCode1 = resp[0];
+        dp.startCode2 = resp[1];
+        dp.deviceID = (resp[3] << 8) + resp[2];
+        
+        for(int i = 0; i < data_len; i++)
+            dp.data[i] = resp[data_len + 2];
+        
+        dp.checksum = (resp[data_len+5] << 8) + resp[data_len+4];
+    }
+    else {
+        // NACK_INVALID_POS
+        // NACK IS NOT USED
+    }
+    
+    
+    return retcode;
+}
+
+
 // Gets a template from the fps (498 bytes) in 4 Data_Packets
 // Use StartDataDownload, and then GetNextDataPacket until done
 // Parameter: 0...(MAX_FGP_COUNT - 1) ID number
@@ -724,9 +837,8 @@ int FPS_GT511::SetTemplate(byte* tmplt, int fgpid, bool duplicateCheck) {
 	// may revisit this if I find a need for it
 int FPS_GT511::GetTemplate(int fgpid)
 {
-	// Not implemented due to memory restrictions on the arduino
-    // may revisit this if I find a need for it
-
+    int retcode = 0;
+    
     if (UseSerialDebug)
         printf("FPS - GetTemplate\n");
     Command_Packet* cp = new Command_Packet();
@@ -735,15 +847,49 @@ int FPS_GT511::GetTemplate(int fgpid)
 
     byte* packetbytes = cp->GetPacketBytes();
     SendCommand(packetbytes, 12);
+    
+    
+#define data_len 498
+    
+    usleep(100*1000);
+    
     Response_Packet* rp = GetResponse();
-    bool retval = rp->ACK;
-    delete rp;
-    delete packetbytes;
-    delete cp;
-    return retval;
+    
+    if(rp->ACK) {
+        struct {
+            byte startCode1;
+            byte startCode2;
+            word deviceID;
+            byte data[data_len];
+            word checksum;
+        } dp;
+        
+        byte * resp = GetResponse(sizeof(dp));
+        dp.startCode1 = resp[0];
+        dp.startCode2 = resp[1];
+        dp.deviceID = (resp[3] << 8) + resp[2];
+        
+        uint16_t chk=0;
 
-    return false;
+        for(int i = 0; i < data_len; i++) {
+            dp.data[i] = resp[i + 4];
+            chk += resp[i + 4];
+        }
+        
+        dp.checksum = (resp[data_len + 5] << 8) + resp[data_len + 4];
+        
+        retcode = (dp.checksum != chk);
+    }
+    else {
+        // NACK_INVALID_POS
+        // NACK IS NOT USED
+    }
+
+    
+    return retcode;
 }
+
+
 
 // Uploads a template to the fps 
 // Parameter: the template (498 bytes)
@@ -767,11 +913,12 @@ int FPS_GT511::GetTemplate(int fgpid)
 // resets the Data_Packet class, and gets ready to download
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-//void FPS_GT511::StartDataDownload()
-//{
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-//}
+void FPS_GT511::StartDataDownload()
+{
+
+    
+    
+}
 
 // Returns the next data packet 
 	// Not implemented due to memory restrictions on the arduino
@@ -816,11 +963,7 @@ void FPS_GT511::SendCommand(byte cmd[], int length)
 // Gets the response to the command from the software serial channel (and waits for it)
 Response_Packet* FPS_GT511::GetResponse()
 {
-	//byte firstbyte = 0;
-	bool done = false;
-    //_serial.listen();
-
-#define RESPONSE_LEN 12
+    bool done = false;
 
     int n;
     byte* resp = new byte[RESPONSE_LEN];
@@ -829,57 +972,69 @@ Response_Packet* FPS_GT511::GetResponse()
     int index = 0;
     while(done == false) {
         n = RS232_PollComport(_com_port, buffer, RESPONSE_LEN);
-        if(n == 12 && buffer[0] == Response_Packet::COMMAND_START_CODE_1) {
+        if(n == RESPONSE_LEN && buffer[0] == Response_Packet::COMMAND_START_CODE_1) {
+            if(UseSerialDebug)
+                printf("FULL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
             done = true;
             memcpy(resp, buffer, RESPONSE_LEN);
         }
-        else if(n < 12 && n > 0) {
+        else if(n < RESPONSE_LEN && n > 0) {
             if(UseSerialDebug)
-                printf("PARTIAL RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
+                printf("PARTIAL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
             memcpy(resp + index, buffer, n);
             index += n;
             if(index == RESPONSE_LEN)
                 done = true;
         }
         else {
-            if(UseSerialDebug)
-              printf("RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
             usleep(10*1000);
         }
     }
-	
-	//~ while (done == false)
-	//~ {
-		//~ firstbyte = (byte)_serial.read();
-		//~ 
-		//~ 
-		//~ if (firstbyte == Response_Packet::COMMAND_START_CODE_1)
-		//~ {
-			//~ done = true;
-		//~ }
-	//~ }
-	//~ byte* resp = new byte[12];
-	//~ resp[0] = firstbyte;
-	//~ for (int i=1; i < 12; i++)
-	//~ {
-		//~ while (_serial.available() == false) 
-			//~ delay(10);
-			//~ usleep(10000);
-        //~ resp[i]= (byte) _serial.read();
-    //~ }
+
 	Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
 	delete resp;
 	if (UseSerialDebug) 
 	{
-        //~ Serial.print("FPS - RECV: ");
         printf("FPS - RECV: ");
 		SendToSerial(rp->RawBytes, 12);
-        //~ Serial.println();
-        //~ Serial.println();
         printf("\n\n");
 	}
 	return rp;
-};
+}
+
+
+byte * FPS_GT511::GetResponse(int aExpectedByteCount)
+{
+    bool done = false;
+    
+    int n;
+    byte * resp = new byte[aExpectedByteCount];
+    byte * buffer = new byte[aExpectedByteCount];
+    
+    int index = 0;
+    while(done == false) {
+        n = RS232_PollComport(_com_port, buffer, aExpectedByteCount);
+        if(n == aExpectedByteCount) {
+            if(UseSerialDebug)
+                printf("FULL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
+            done = true;
+            memcpy(resp, buffer, aExpectedByteCount);
+        }
+        else if(n < aExpectedByteCount && n > 0) {
+            if(UseSerialDebug)
+                printf("PARTIAL RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
+            memcpy(resp + index, buffer, n);
+            index += n;
+            if(index == aExpectedByteCount)
+                done = true;
+        }
+        else {
+            usleep(10 * 1000);
+        }
+    }
+    return resp;
+}
+
 
 // sends the bye aray to the serial debugger in our hex format EX: "00 AF FF 10 00 13"
 void FPS_GT511::SendToSerial(byte data[], int length)
@@ -909,6 +1064,103 @@ void FPS_GT511::serialPrintHex(byte data)
   printf("%s", tmp);
 }
 // #pragma endregion
+
+
+
+
+// ============================================================================
+// PORT OF WIN32 CODE
+// ============================================================================
+#define SB_OEM_PKT_SIZE			12
+#define SB_OEM_HEADER_SIZE		2
+#define SB_OEM_DEV_ID_SIZE		2
+#define SB_OEM_CHK_SUM_SIZE		2
+
+// Header Of Cmd and Ack Packets
+#define STX1				0x55	//Header1
+#define STX2				0xAA	//Header2
+
+// Header Of Data Packet
+#define STX3				0x5A	//Header1
+#define STX4				0xA5	//Header2
+
+#define PKT_ERR_START	-500
+#define PKT_COMM_ERR	PKT_ERR_START+1
+#define PKT_HDR_ERR		PKT_ERR_START+2
+#define PKT_DEV_ID_ERR	PKT_ERR_START+3
+#define PKT_CHK_SUM_ERR	PKT_ERR_START+4
+#define PKT_PARAM_ERR	PKT_ERR_START+5
+
+#define COMM_DEF_TIMEOUT 15000
+uint16_t gCommTimeOut = COMM_DEF_TIMEOUT;
+// Structure Of Cmd and Ack Packets
+typedef struct {
+    uint8_t 	Head1;
+    uint8_t 	Head2;
+    uint16_t	wDevId;
+    int		nParam;
+    uint16_t	wCmd;// or nAck
+    uint16_t 	wChkSum;
+} SB_OEM_PKT;
+
+uint16_t oemp_CalcChkSumOfDataPkt( uint8_t* pDataPkt, int nSize )
+{
+    int i;
+    uint16_t wChkSum = 0;
+    uint8_t* pBuf = (uint8_t*)pDataPkt;
+    
+    for(i=0;i<nSize;i++)
+        wChkSum += pBuf[i];
+    return wChkSum;
+}
+
+//int oemp_ReceiveData( uint16_t wDevID, uint8_t * pBuf, int nSize )
+//{
+//    uint16_t wReceivedChkSum, wChkSum;
+//    uint8_t Buf[4],*pCommBuf;
+//    int nReceivedBytes;
+//    
+//    if( pBuf == NULL )
+//        return PKT_PARAM_ERR;
+//    
+//    
+//    /*AVW modify*/
+//    pCommBuf = new uint8_t[nSize + SB_OEM_HEADER_SIZE + SB_OEM_DEV_ID_SIZE + SB_OEM_CHK_SUM_SIZE];
+//    
+//    
+//    
+//    nReceivedBytes = this->GetResponse( pCommBuf, nSize + SB_OEM_HEADER_SIZE + SB_OEM_DEV_ID_SIZE + SB_OEM_CHK_SUM_SIZE, gCommTimeOut );
+//    
+//    if( nReceivedBytes != nSize+SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE+SB_OEM_CHK_SUM_SIZE )
+//    {
+//        if(pCommBuf)
+//            delete pCommBuf;
+//        return PKT_COMM_ERR;
+//    }
+//    memcpy(Buf, pCommBuf, SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE);
+//    memcpy(pBuf, pCommBuf+SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE, nSize);
+//    wReceivedChkSum = *(uint8_t*)(pCommBuf+nSize+SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE);
+//    if(pCommBuf)
+//        delete pCommBuf;
+//    ////////////// pc end ///////////////
+//    
+//    if( ( Buf[0] != STX3 ) ||
+//       ( Buf[1] != STX4 ) )
+//    {
+//        return PKT_HDR_ERR;
+//    }
+//    
+//    if( *((uint16_t*)(&Buf[SB_OEM_HEADER_SIZE])) != wDevID )
+//        return PKT_DEV_ID_ERR;
+//    
+//    wChkSum = oemp_CalcChkSumOfDataPkt( Buf, SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE  );
+//    wChkSum += oemp_CalcChkSumOfDataPkt( pBuf, nSize );
+//    
+//    if( wChkSum != wReceivedChkSum )
+//        return PKT_CHK_SUM_ERR;
+//    /*AVW modify*/
+//    return 0;
+//}
 
 // #pragma endregion
 

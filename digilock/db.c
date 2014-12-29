@@ -335,7 +335,7 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint16_t aChecksum, u
 }
 
 
-int db_delete_user(int aUserID) {
+int db_delete_user_data(int aUserID, bool aDeleteUser) {
 
 	int rc;
 	char sql[256];
@@ -360,13 +360,14 @@ int db_delete_user(int aUserID) {
 	rc = exec(sql, true, EDBAlertWarning);
 
 	// remove user
-	sprintf(sql,
-		"DELETE FROM %s WHERE %s = %d;",
-		TABLE_USER,
-		TABLE_USER_ID,
-		aUserID);
-	rc = exec(sql, true, EDBAlertWarning);
-
+    if(aDeleteUser) {
+        sprintf(sql,
+            "DELETE FROM %s WHERE %s = %d;",
+            TABLE_USER,
+            TABLE_USER_ID,
+            aUserID);
+        rc = exec(sql, true, EDBAlertWarning);
+    }
 	return rc;
 }
 

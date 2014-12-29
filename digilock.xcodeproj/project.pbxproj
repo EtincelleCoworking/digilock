@@ -9,12 +9,13 @@
 /* Begin PBXBuildFile section */
 		09A1A4401A4FF43300B55324 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */; };
 		09A1A4421A4FF43900B55324 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A4411A4FF43900B55324 /* libcurl.dylib */; };
-		6122FAE81A513D8F008C2D43 /* db.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FADD1A513D8F008C2D43 /* db.c */; };
-		6122FAE91A513D8F008C2D43 /* FPS_GT511Linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FADF1A513D8F008C2D43 /* FPS_GT511Linux.cpp */; };
-		6122FAEA1A513D8F008C2D43 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE11A513D8F008C2D43 /* main.cpp */; };
-		6122FAEB1A513D8F008C2D43 /* req.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE31A513D8F008C2D43 /* req.c */; };
-		6122FAEC1A513D8F008C2D43 /* rs232.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE51A513D8F008C2D43 /* rs232.c */; };
-		6122FAED1A513D8F008C2D43 /* smtp-mail.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAE71A513D8F008C2D43 /* smtp-mail.c */; };
+		6122FAF91A515D92008C2D43 /* db.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAEE1A515D92008C2D43 /* db.c */; };
+		6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */; };
+		6122FAFB1A515D92008C2D43 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF21A515D92008C2D43 /* main.cpp */; };
+		6122FAFC1A515D92008C2D43 /* req.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF41A515D92008C2D43 /* req.c */; };
+		6122FAFD1A515D92008C2D43 /* rs232.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF61A515D92008C2D43 /* rs232.c */; };
+		6122FAFE1A515D92008C2D43 /* smtp-mail.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF81A515D92008C2D43 /* smtp-mail.c */; };
+		6122FB011A5188F3008C2D43 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAFF1A5188F3008C2D43 /* bitmap.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,17 +34,19 @@
 		09A1A4241A4FF31000B55324 /* digilock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = digilock; sourceTree = BUILT_PRODUCTS_DIR; };
 		09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		09A1A4411A4FF43900B55324 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
-		6122FADD1A513D8F008C2D43 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = db.c; path = digilock/db.c; sourceTree = SOURCE_ROOT; };
-		6122FADE1A513D8F008C2D43 /* db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = db.h; path = digilock/db.h; sourceTree = SOURCE_ROOT; };
-		6122FADF1A513D8F008C2D43 /* FPS_GT511Linux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPS_GT511Linux.cpp; path = digilock/FPS_GT511Linux.cpp; sourceTree = SOURCE_ROOT; };
-		6122FAE01A513D8F008C2D43 /* FPS_GT511Linux.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FPS_GT511Linux.h; path = digilock/FPS_GT511Linux.h; sourceTree = SOURCE_ROOT; };
-		6122FAE11A513D8F008C2D43 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = digilock/main.cpp; sourceTree = SOURCE_ROOT; };
-		6122FAE21A513D8F008C2D43 /* ports.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ports.h; path = digilock/ports.h; sourceTree = SOURCE_ROOT; };
-		6122FAE31A513D8F008C2D43 /* req.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = req.c; path = digilock/req.c; sourceTree = SOURCE_ROOT; };
-		6122FAE41A513D8F008C2D43 /* req.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = req.h; path = digilock/req.h; sourceTree = SOURCE_ROOT; };
-		6122FAE51A513D8F008C2D43 /* rs232.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = rs232.c; path = digilock/rs232.c; sourceTree = SOURCE_ROOT; };
-		6122FAE61A513D8F008C2D43 /* rs232.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rs232.h; path = digilock/rs232.h; sourceTree = SOURCE_ROOT; };
-		6122FAE71A513D8F008C2D43 /* smtp-mail.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "smtp-mail.c"; path = "digilock/smtp-mail.c"; sourceTree = SOURCE_ROOT; };
+		6122FAEE1A515D92008C2D43 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = db.c; path = digilock/db.c; sourceTree = SOURCE_ROOT; };
+		6122FAEF1A515D92008C2D43 /* db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = db.h; path = digilock/db.h; sourceTree = SOURCE_ROOT; };
+		6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPS_GT511Linux.cpp; path = digilock/FPS_GT511Linux.cpp; sourceTree = SOURCE_ROOT; };
+		6122FAF11A515D92008C2D43 /* FPS_GT511Linux.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FPS_GT511Linux.h; path = digilock/FPS_GT511Linux.h; sourceTree = SOURCE_ROOT; };
+		6122FAF21A515D92008C2D43 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = digilock/main.cpp; sourceTree = SOURCE_ROOT; };
+		6122FAF31A515D92008C2D43 /* ports.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ports.h; path = digilock/ports.h; sourceTree = SOURCE_ROOT; };
+		6122FAF41A515D92008C2D43 /* req.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = req.c; path = digilock/req.c; sourceTree = SOURCE_ROOT; };
+		6122FAF51A515D92008C2D43 /* req.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = req.h; path = digilock/req.h; sourceTree = SOURCE_ROOT; };
+		6122FAF61A515D92008C2D43 /* rs232.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = rs232.c; path = digilock/rs232.c; sourceTree = SOURCE_ROOT; };
+		6122FAF71A515D92008C2D43 /* rs232.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rs232.h; path = digilock/rs232.h; sourceTree = SOURCE_ROOT; };
+		6122FAF81A515D92008C2D43 /* smtp-mail.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "smtp-mail.c"; path = "digilock/smtp-mail.c"; sourceTree = SOURCE_ROOT; };
+		6122FAFF1A5188F3008C2D43 /* bitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bitmap.c; path = digilock/bitmap.c; sourceTree = SOURCE_ROOT; };
+		6122FB021A5190B8008C2D43 /* bitmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,17 +83,19 @@
 		09A1A4261A4FF31000B55324 /* digilock */ = {
 			isa = PBXGroup;
 			children = (
-				6122FADD1A513D8F008C2D43 /* db.c */,
-				6122FADE1A513D8F008C2D43 /* db.h */,
-				6122FADF1A513D8F008C2D43 /* FPS_GT511Linux.cpp */,
-				6122FAE01A513D8F008C2D43 /* FPS_GT511Linux.h */,
-				6122FAE11A513D8F008C2D43 /* main.cpp */,
-				6122FAE21A513D8F008C2D43 /* ports.h */,
-				6122FAE31A513D8F008C2D43 /* req.c */,
-				6122FAE41A513D8F008C2D43 /* req.h */,
-				6122FAE51A513D8F008C2D43 /* rs232.c */,
-				6122FAE61A513D8F008C2D43 /* rs232.h */,
-				6122FAE71A513D8F008C2D43 /* smtp-mail.c */,
+				6122FAEE1A515D92008C2D43 /* db.c */,
+				6122FAEF1A515D92008C2D43 /* db.h */,
+				6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */,
+				6122FAF11A515D92008C2D43 /* FPS_GT511Linux.h */,
+				6122FAF21A515D92008C2D43 /* main.cpp */,
+				6122FAF31A515D92008C2D43 /* ports.h */,
+				6122FAF41A515D92008C2D43 /* req.c */,
+				6122FAF51A515D92008C2D43 /* req.h */,
+				6122FAF61A515D92008C2D43 /* rs232.c */,
+				6122FAF71A515D92008C2D43 /* rs232.h */,
+				6122FAF81A515D92008C2D43 /* smtp-mail.c */,
+				6122FAFF1A5188F3008C2D43 /* bitmap.c */,
+				6122FB021A5190B8008C2D43 /* bitmap.h */,
 			);
 			name = digilock;
 			path = gt511osx;
@@ -152,12 +157,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6122FAEC1A513D8F008C2D43 /* rs232.c in Sources */,
-				6122FAE81A513D8F008C2D43 /* db.c in Sources */,
-				6122FAE91A513D8F008C2D43 /* FPS_GT511Linux.cpp in Sources */,
-				6122FAEB1A513D8F008C2D43 /* req.c in Sources */,
-				6122FAED1A513D8F008C2D43 /* smtp-mail.c in Sources */,
-				6122FAEA1A513D8F008C2D43 /* main.cpp in Sources */,
+				6122FAFD1A515D92008C2D43 /* rs232.c in Sources */,
+				6122FB011A5188F3008C2D43 /* bitmap.c in Sources */,
+				6122FAF91A515D92008C2D43 /* db.c in Sources */,
+				6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */,
+				6122FAFC1A515D92008C2D43 /* req.c in Sources */,
+				6122FAFE1A515D92008C2D43 /* smtp-mail.c in Sources */,
+				6122FAFB1A515D92008C2D43 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,6 +247,10 @@
 		09A1A42C1A4FF31000B55324 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
 				PRODUCT_NAME = digilock;
 			};
 			name = Debug;

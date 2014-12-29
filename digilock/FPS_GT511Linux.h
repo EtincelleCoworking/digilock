@@ -183,6 +183,8 @@ class FPS_GT511
 	// destructor
 	~FPS_GT511();
     // #pragma endregion
+    
+    bool IsAvailable();
 
 
     // #pragma region -= Device Commands =-
@@ -306,7 +308,8 @@ class FPS_GT511
 	//	2 - ID not used (no template to download
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-    int GetTemplate(int id);
+    int MakeTemplate(int fgpid);
+    int GetTemplate(int fgpid);
 
 	// Uploads a template to the fps 
 	// Parameter: the template (498 bytes)
@@ -343,7 +346,7 @@ class FPS_GT511
 	// resets the Data_Packet class, and gets ready to download
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-	//void StartDataDownload();
+	void StartDataDownload();
 
 	// Returns the next data packet 
 	// Not implemented due to memory restrictions on the arduino
@@ -351,13 +354,15 @@ class FPS_GT511
 	//Data_Packet GetNextDataPacket();
 
 private:
-	 void SendCommand(byte cmd[], int length);
-	 Response_Packet* GetResponse();
-     //uint8_t pin_RX,pin_TX;
-	 //SoftwareSerial _serial;
-	 int _com_port;
-	 int _baud_rate;
-	 const char * _mode;
+    void SendCommand(byte cmd[], int length);
+    Response_Packet* GetResponse();
+    byte * GetResponse(int aExpectedByteCount);
+
+    int _com_port;
+    int _baud_rate;
+    bool _available;
+    bool _open;
+    const char * _mode;
 };
 
 

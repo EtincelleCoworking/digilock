@@ -93,7 +93,7 @@ int db_insert_user(char * aEmail);
 int db_count_users();
 int db_get_user_id(char * aEmail);
 int db_insert_fingerprint(int aUserID, int aFingerprintID, uint16_t aChecksum, uint8_t * aData);
-int db_delete_user(int aUserID);
+int db_delete_user_data(int aUserID, bool aDeleteUser);
 
     
 #ifdef __cplusplus

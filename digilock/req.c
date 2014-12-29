@@ -73,23 +73,25 @@ int req_cleanup() {
     return 0;
 }
 
+
 int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResult) {
 
-      CURL *curl;
-      CURLcode res;
+    CURL *curl;
+    CURLcode res;
 
-      /* In windows, this will init the winsock stuff */
-     // curl_global_init(CURL_GLOBAL_ALL);
+    /* In windows, this will init the winsock stuff */
+    // curl_global_init(CURL_GLOBAL_ALL);
 
-      /* get a curl handle */
-      curl = curl_easy_init();
-      if(curl) {
-        /* First set the URL that is about to receive our POST. This URL can
+    /* get a curl handle */
+    curl = curl_easy_init();
+    if(curl) {
+          /* First set the URL that is about to receive our POST. This URL can
            just as well be a https:// URL if that is what should receive the
            data. */
-         char url[256];
-         sprintf(url, "%s%s", SERVER_BASE_URL, "api/log");
-          curl_easy_setopt(curl, CURLOPT_URL, url);
+        char url[256];
+        sprintf(url, "%s%s", SERVER_BASE_URL, "api/log");
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+
         /* Now specify the POST data */
         char str[256];
         sprintf(str, "when=%lld&kind=%d&fingerprint_id=%d&result=%d", aTimestamp, aEventType, aFingerprintID, aResult);
@@ -99,12 +101,12 @@ int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResul
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK)
-          fprintf(stderr, "req_log() failed: %s\n", curl_easy_strerror(res));
+            fprintf(stderr, "req_log() failed: %s\n", curl_easy_strerror(res));
 
         /* always cleanup */
         curl_easy_cleanup(curl);
-      }
-      return (int)res;
+    }
+    return (int)res;
 }
 
 
@@ -120,6 +122,7 @@ int req_user(int aUserID, char * aEmail) {
        char url[256];
        sprintf(url, "%s%s", SERVER_BASE_URL, "api/user");
         curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
         char str[256];
       sprintf(str, "id=%d&email=%s", aUserID, aEmail);
@@ -147,6 +150,7 @@ int req_fgp(int aUserID, int aFingerprintID, char * aData64) {
        char url[256];
        sprintf(url, "%s%s%d%s", SERVER_BASE_URL, "api/user/", aUserID, "/fingerprint");
         curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
         char str[256];
       sprintf(str, "id=%d&image=%s", aFingerprintID, aData64);

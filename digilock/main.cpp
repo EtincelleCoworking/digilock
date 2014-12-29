@@ -8,9 +8,14 @@
 
 #include "FPS_GT511Linux.h"
 #include "db.h"
-#include <sys/malloc.h>
+#ifdef __APPLE__
+#  include <sys/malloc.h>
+#  include <pthread/pthread.h>
+#else
+#  include <malloc.h>
+#  include <pthread.h>
+#endif
 #include "req.h"
-#include <pthread/pthread.h>
 
 #ifdef __APPLE__
 #  define GT511_PORT_ENTRY      apple_ttyUSB0
@@ -22,10 +27,13 @@
 #  define GT511_PORT_ENROLL     ttyUSB0
 #endif
 
-
+#define COMMAND_PASSWORD        "sesame"
 #define COMMAND_YES             "yes"
 
 // thread
+#define COMMAND_BLINK_START     "blink start"
+#define COMMAND_BLINK_STOP      "blink stop"
+
 #define COMMAND_EXIT            "exit"
 #define COMMAND_ENROLL          "enroll"
 #define COMMAND_PAUSE_ENTRY     "pause entry"
@@ -41,8 +49,17 @@
 #define COMMAND_SYNC            "sync fingerprints"
 
 
+#define FPS_BAUD                9600
+#define FPS_MODE                {'8', 'N', '1', 0}
 
+static volatile bool            sBlinkLoop;
+static volatile bool            sScanEntryLoop;
+static volatile bool            sScanExitLoop;
 
+static char sMode[]             = {'8', 'N', '1', 0};
+static FPS_GT511                sEntryFPS(GT511_PORT_ENTRY, FPS_BAUD, sMode);
+static FPS_GT511                sExitFPS(GT511_PORT_EXIT, FPS_BAUD, sMode);
+#define sEnrollFPS              sExitFPS
 
 
 
@@ -81,12 +98,7 @@ char * getline(void) {
 
 
 int enroll() {
-    int port = GT511_PORT_ENROLL;
-    int baud = 9600;
-    char mode[] = {'8', 'N', '1', 0};
-
-    FPS_GT511 fps(port, baud, mode);
-    usleep(100 * 1000); // wait for device init
+    FPS_GT511 fps = sEnrollFPS;
     fps.Open();
     fps.UseSerialDebug = false;
     fps.SetLED(true);
@@ -183,37 +195,83 @@ int enroll() {
 }
 
 
-static void * scan(void * aPort) {
 
-    int port = *((int *)aPort);
-    int baud = 9600;
-    char mode[] = {'8', 'N', '1', 0};
+
+
+void showLED(int aLed, bool aEnable, bool aBlink, int aDurationMS) {
+ 
+    
+    
+    
+}
+
+
+static void * scan_entry(void * aUnused) {
 
     // setup
-    FPS_GT511 fps(port, baud, mode);
-    usleep(100 * 1000);
-    fps.Open();
-    fps.UseSerialDebug=false;
-    usleep(100 * 1000);
-
-    fps.SetLED(true);
-
+    sEntryFPS.SetLED(true);
+    sScanEntryLoop = true;
+    
     // loop
     while(1) {
-        if(fps.IsPressFinger()) {
-            fps.CaptureFinger(false);
-            int id = fps.Identify1_N();
-            if(id < MAX_FGP_COUNT) {
-                printf("Verified ID: %d\n", id);
-                db_insert_event(id, port == GT511_PORT_ENTRY ? EEventTypeEntry : EEventTypeExit, true);
+        if(sScanEntryLoop) {
+            if(sEntryFPS.IsPressFinger()) {
+                // turn on orange LED
+                sEntryFPS.CaptureFinger(false);
+                int id = sEntryFPS.Identify1_N();
+
+                if(id < MAX_FGP_COUNT) {
+                    // turn on green LED
+                    
+                    printf("Verified ID: %d\n", id);
+                    db_insert_event(id, EEventTypeEntry, true);
+                }
+                else {
+                    // turn on red LED
+                    
+                    printf("Finger not found\n");
+                    db_insert_event(-1, EEventTypeEntry, false);
+                }
             }
             else {
-                printf("Finger not found\n");
-                db_insert_event(-1, port == GT511_PORT_ENTRY ? EEventTypeEntry : EEventTypeExit, false);
+                // turn off orange LED
             }
         }
-        else {
-            //printf("Please press finger\n");
+        usleep(100 * 1000);
+    }
+}
+
+
+static void * scan_exit(void * aUnused) {
+    
+    // setup
+    sExitFPS.SetLED(true);
+    sScanExitLoop = true;
+    
+    // loop
+    while(1) {
+        if(sScanExitLoop) {
+            if(sExitFPS.IsPressFinger()) {
+                // turn on orange LED
+                
+                sExitFPS.CaptureFinger(false);
+                int id = sExitFPS.Identify1_N();
+                if(id < MAX_FGP_COUNT) {
+                    // turn on green LED
+                    
+                    printf("Verified ID: %d\n", id);
+                    db_insert_event(id, EEventTypeExit, true);
+                }
+                else {
+                    // turn on red LED
+                    
+                    printf("Finger not found\n");
+                    db_insert_event(-1, EEventTypeExit, false);
+                }
+            }
+            else {
+                // turn off orange LED
+            }
         }
         usleep(100 * 1000);
     }
@@ -224,160 +282,192 @@ static void * scan(void * aPort) {
  * Used for testing communication w/ module.
  */
 static void * blink(void * aPort) {
-    int baud = 9600;
-    char mode[] = {'8', 'N', '1', 0};
-    int port = *((int *) aPort);
-    
-    // setup
-    FPS_GT511 fps(port, baud, mode);
-    usleep(100 * 1000);
-    fps.Open();
-    usleep(100 * 1000);
+    sBlinkLoop = true;
 
     // loop
-    while(1) {
-        fps.SetLED(true);
+    while(sBlinkLoop) {
+        if(sEntryFPS.IsAvailable()) sEntryFPS.SetLED(true);
+        if(sExitFPS.IsAvailable()) sExitFPS.SetLED(true);
         usleep(500 * 1000);
-        fps.SetLED(false);
+        if(sEntryFPS.IsAvailable()) sEntryFPS.SetLED(false);
+        if(sExitFPS.IsAvailable()) sExitFPS.SetLED(false);
         usleep(500 * 1000);
     }
+    printf("BLINK thread stopped.\n");
+    return NULL;
 }
 
 int main() {
-    // init sqlite and curl
+    // init sqlite, curl and devices
     db_open();
     req_init();
     
-//    int baud = 9600;
-//    char mode[] = {'8', 'N', '1', 0};
-//    FPS_GT511 fps(GT511_PORT_ENROLL, baud, mode);
-//    usleep(100 * 1000);
-//    fps.Open();
-//    usleep(100 * 1000);
-//    fps.DeleteAll();
+    
+    // TODO: parse command line
+    sEntryFPS.UseSerialDebug=true;
 
     
-//    pthread_t * thr_blink;
-//    int blink_port[1];
-//    blink_port[0] = GT511_PORT_ENTRY;
-//    if(0 == pthread_create(thr_blink, NULL, blink, &blink_port[0])) {
-//        printf("BLINK thread created !\n");
-//    }
+    if(sEntryFPS.IsAvailable()) sEntryFPS.Open();
+    else printf("ERROR: Entry GT511 not found !\n");
+        
+    if(sExitFPS.IsAvailable()) sExitFPS.Open();
+    else printf("ERROR: Exit GT511 not found !\n");
+    
+    sEntryFPS.GetTemplate(0);
+    sEntryFPS.GetImage();
+
     
     
-    pthread_t * thr_entry_scan;
-    int entry_port[1];
-    entry_port[0] = GT511_PORT_ENTRY;
-    if(0 == pthread_create(thr_entry_scan, NULL, scan, &entry_port[0])) {
+    pthread_t thr_blink;
+    pthread_t thr_entry_scan;
+    pthread_t thr_exit_scan;
+    
+    if(0 == pthread_create(&thr_entry_scan, NULL, scan_entry, NULL)) {
         printf("ENTRY scan thread created !\n");
     }
-    
-//    pthread_t * thr_exit_scan;
-//    int exit_port[1];
-//    exit_port[0] = GT511_PORT_EXIT;
-//    if(0 == pthread_create(thr_exit_scan, NULL, scan, &exit_port[0])) {
-//        printf("EXIT scan thread created !\n");
-//    }
-    
-    char * command = NULL;
-    printf("\nEnter command: ");
-    do {
-        command = getline();
-        
-        if(strcasecmp(command, COMMAND_ENROLL) == 0) {
-            if(0 == pthread_cancel(*thr_entry_scan)) {
-                printf("ENTRY scan thread canceled !\n");
-            }
-//            if(0 == pthread_cancel(*thr_exit_scan)) {
-//                printf("ENTRY scan thread canceled !\n");
-//            }
-            if(enroll() == 0) {
-                // TODO: sync GT511s
-            }
-        }
-        else if(strcasecmp(command, COMMAND_PAUSE_ENTRY) == 0) {
-            if(0 == pthread_cancel(*thr_entry_scan)) {
-                printf("ENTRY scan thread canceled !\n");
-            }
-        }
-        else if(strcasecmp(command, COMMAND_RESUME_ENTRY) == 0) {
-            if(0 == pthread_create(thr_entry_scan, NULL, scan, &entry_port[0])) {
-                printf("ENTRY scan thread created !\n");
-            }
-        }
-        else if(strcasecmp(command, COMMAND_DELETE_FGP) == 0) {
-            printf("\nEnter user e-mail:");
-            command = getline();
 
-        }
-        else if(strcasecmp(command, COMMAND_DELETE_USER) == 0) {
-            printf("Enter user e-mail: ");
-            char * email = getline();
-            int _id = db_get_user_id(email);
-            if(_id == -1) {
-                printf("Unknown user e-mail.");
+    if(0 == pthread_create(&thr_exit_scan, NULL, scan_exit, NULL)) {
+        printf("EXIT scan thread created !\n");
+    }
+    
+    char command[256];
+    
+    do {
+        printf("$> ");
+
+        if (fgets(command, sizeof(command), stdin)) {
+            
+            // remove '\n'
+            command[strlen(command) - 1] = '\0';
+            if(strcasecmp(command, COMMAND_ENROLL) == 0) {
+                sScanExitLoop = false;
+                if(enroll() == 0) {
+                    // TODO: sync GT511s
+                }
+                else {
+                    
+                }
             }
-            else {
-                printf("Do you really want to delete user %d / %s ?\nAll matching fingerprint data will be deleted: ", _id, email);
+            else if(strcasecmp(command, COMMAND_PAUSE_ENTRY) == 0) {
+                sScanEntryLoop = false;
+                printf("ENTRY scan thread paused !\n");
+            }
+            else if(strcasecmp(command, COMMAND_RESUME_ENTRY) == 0) {
+                sScanEntryLoop = true;
+                printf("ENTRY scan thread resumed !\n");
+            }
+            else if(strcasecmp(command, COMMAND_PAUSE_EXIT) == 0) {
+                sScanExitLoop = false;
+                printf("EXIT scan thread paused !\n");
+            }
+            else if(strcasecmp(command, COMMAND_RESUME_EXIT) == 0) {
+                sScanExitLoop = true;
+                printf("EXIT scan thread resumed !\n");
+            }
+            else if(strcasecmp(command, COMMAND_DELETE_FGP) == 0) {
+                printf("\nEnter user e-mail:");
+                char * email = getline();
+                int _id = db_get_user_id(email);
+                if(_id == -1) {
+                    printf("Unknown user e-mail.");
+                }
+                else {
+                    printf("Do you really want to delete fingerprints for user %d / %s ?\n", _id, email);
+                    char * response = getline();
+                    if(0 == strcasecmp(response, COMMAND_YES)) {
+                        db_delete_user_data(_id, false);
+                        printf("Done.");
+                    }
+                    else {
+                        printf("Cancelled.");
+                    }
+                }
+            }
+            else if(strcasecmp(command, COMMAND_DELETE_USER) == 0) {
+                printf("Enter user e-mail: ");
+                char * email = getline();
+                int _id = db_get_user_id(email);
+                if(_id == -1) {
+                    printf("Unknown user e-mail.");
+                }
+                else {
+                    printf("Do you really want to delete user %d / %s ?\nAll matching fingerprint data will be deleted: ", _id, email);
+                    char * response = getline();
+                    if(0 == strcasecmp(response, COMMAND_YES)) {
+                        db_delete_user_data(_id, true);
+                        printf("Done.");
+                    }
+                    else {
+                        printf("Cancelled.");
+                    }
+                }
+            }
+            else if(strcasecmp(command, COMMAND_CREATE_USER) == 0) {
+                printf("Enter user e-mail: ");
+                char * email = getline();
+                bool enroll_ok = true;
+                int _id = db_get_user_id(email);
+                if(_id == -1) {
+                    _id = db_insert_user(email);
+                    if(_id == -1) {
+                        printf("User creation failed.\n");
+                        enroll_ok = false;
+                    }
+                    else {
+                        printf("User created with id %d.\n", _id);
+                    }
+                }
+                else {
+                    printf("User already exists.\n");
+                }
+                
+                if(enroll_ok) {
+                    printf("Enroll user now ? ");
+                    char * response = getline();
+                    if(0 == strcasecmp(response, COMMAND_YES)) {
+                        enroll();
+                    }
+                }
+            }
+            else if(strcasecmp(command, COMMAND_EMPTY_FGP) == 0) {
+            }
+            else if(strcasecmp(command, COMMAND_SYNC) == 0) {
+                printf("Synchronize device data now ?\nThe scanning will be paused: ");
                 char * response = getline();
                 if(0 == strcasecmp(response, COMMAND_YES)) {
-                    db_delete_user(_id);
+                    sScanExitLoop = false;
+                    sScanEntryLoop = false;
+
+                    // TODO:
+                    
                     printf("Done.");
+                    sScanExitLoop = true;
+                    sScanEntryLoop = true;
                 }
                 else {
                     printf("Cancelled.");
                 }
             }
-        }
-        else if(strcasecmp(command, COMMAND_CREATE_USER) == 0) {
-            printf("Enter user e-mail: ");
-            char * email = getline();
-            bool enroll_ok = true;
-            int _id = db_get_user_id(email);
-            if(_id == -1) {
-                _id = db_insert_user(email);
-                if(_id == -1) {
-                    printf("User creation failed.\n");
-                    enroll_ok = false;
+            else if(strcasecmp(command, COMMAND_BLINK_START) == 0) {
+                sBlinkLoop = true;
+                if(0 == pthread_create(&thr_blink, NULL, blink, NULL)) {
+                    printf("BLINK thread created !\n");
                 }
-                else {
-                    printf("User created with id %d.\n", _id);
-                }
+            }
+            else if(strcasecmp(command, COMMAND_BLINK_STOP) == 0) {
+                printf("BLINK thread stopping...\n");
+                sBlinkLoop = false;
             }
             else {
-                printf("User already exists.\n");
-            }
-            
-            if(enroll_ok) {
-                printf("Enroll user now ? ");
-                char * response = getline();
-                if(0 == strcasecmp(response, COMMAND_YES)) {
-                    enroll();
-                }
+                printf("Unknown command.\n");
             }
         }
-        else if(strcasecmp(command, COMMAND_EMPTY_FGP) == 0) {
-            
-        }
-        else if(strcasecmp(command, COMMAND_SYNC) == 0) {
-            
-        }
-
-        
-        
-        
-        else {
-            printf("Unknown command.\n");
-        }
-//        else if(strcasecmp(command, COMMAND_PAUSE_EXIT)) {
-//            
-//        }
-//        else if(strcasecmp(command, COMMAND_RESUME_EXIT)) {
-//            
-//        }
     }
     while (strcasecmp(command, COMMAND_EXIT));
 
+    sEntryFPS.Close();
+    sExitFPS.Close();
+    
     req_cleanup();
     db_close();
 
