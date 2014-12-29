@@ -183,9 +183,6 @@ class FPS_GT511
 	// destructor
 	~FPS_GT511();
     // #pragma endregion
-    
-    bool IsAvailable();
-
 
     // #pragma region -= Device Commands =-
 	//Initialises the device and gets ready for commands
@@ -309,7 +306,7 @@ class FPS_GT511
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
     int MakeTemplate(int fgpid);
-    int GetTemplate(int fgpid);
+    int GetTemplate(int fgpid, byte * tmp);
 
 	// Uploads a template to the fps 
 	// Parameter: the template (498 bytes)
@@ -362,6 +359,7 @@ private:
     int _baud_rate;
     bool _available;
     bool _open;
+    bool _led;
     const char * _mode;
 };
 

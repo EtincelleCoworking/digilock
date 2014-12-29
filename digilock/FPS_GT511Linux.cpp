@@ -252,14 +252,15 @@ FPS_GT511::~FPS_GT511()
 // #pragma endregion
 
 
-bool FPS_GT511::IsAvailable() {
-    return _available;
-}
-
 // #pragma region -= Device Commands =-
 //Initialises the device and gets ready for commands
 void FPS_GT511::Open()
 {
+    if(!_available) {
+        printf("Device is not available.\n");
+        return;
+    }
+    
     if(_open) {
         printf("Device already opened.\n");
         return;
@@ -313,6 +314,11 @@ void FPS_GT511::Close()
 // Returns: True if successful, false if not
 bool FPS_GT511::SetLED(bool on)
 {
+    if(!_available)
+        return false;
+    if(_led == on)
+        return true;
+    
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::CmosLed;
 	if (on)
@@ -337,6 +343,7 @@ bool FPS_GT511::SetLED(bool on)
 	Response_Packet* rp = GetResponse();
 	bool retval = true;
 	if (rp->ACK == false) retval = false;
+    else _led = on;
 	delete rp;
 	delete packetbytes;
 	delete cp;
@@ -659,7 +666,7 @@ int FPS_GT511::Identify1_N()
 	delete rp;
 	delete packetbytes;
 	delete cp;
-	return retval;
+    return retval;
 }
 
 // Captures the currently pressed finger into onboard ram use this prior to other commands
@@ -716,7 +723,7 @@ bool FPS_GT511::GetImage()
     SendCommand(packetbytes, 12);
     
     
-#define data_len 52116
+#define data_len 258*202
     
     usleep(100*1000);
     
@@ -835,7 +842,7 @@ int FPS_GT511::MakeTemplate(int fgpid)
 //	2 - ID not used (no template to download
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-int FPS_GT511::GetTemplate(int fgpid)
+int FPS_GT511::GetTemplate(int fgpid, byte * tmp)
 {
     int retcode = 0;
     
@@ -851,7 +858,7 @@ int FPS_GT511::GetTemplate(int fgpid)
     
 #define data_len 498
     
-    usleep(100*1000);
+    usleep(100 * 1000);
     
     Response_Packet* rp = GetResponse();
     
@@ -865,20 +872,19 @@ int FPS_GT511::GetTemplate(int fgpid)
         } dp;
         
         byte * resp = GetResponse(sizeof(dp));
-        dp.startCode1 = resp[0];
-        dp.startCode2 = resp[1];
+        dp.startCode1 = resp[0]; // should be 0x5a
+        dp.startCode2 = resp[1]; // should be 0xa5
         dp.deviceID = (resp[3] << 8) + resp[2];
         
-        uint16_t chk=0;
-
+        uint16_t chk = 0;
         for(int i = 0; i < data_len; i++) {
             dp.data[i] = resp[i + 4];
             chk += resp[i + 4];
         }
         
         dp.checksum = (resp[data_len + 5] << 8) + resp[data_len + 4];
-        
-        retcode = (dp.checksum != chk);
+    
+        memcpy(tmp, dp.data, data_len);
     }
     else {
         // NACK_INVALID_POS
@@ -963,28 +969,24 @@ void FPS_GT511::SendCommand(byte cmd[], int length)
 // Gets the response to the command from the software serial channel (and waits for it)
 Response_Packet* FPS_GT511::GetResponse()
 {
-    bool done = false;
-
     int n;
     byte* resp = new byte[RESPONSE_LEN];
     byte* buffer = new byte[RESPONSE_LEN];
 
     int index = 0;
-    while(done == false) {
+    while(index < RESPONSE_LEN) {
         n = RS232_PollComport(_com_port, buffer, RESPONSE_LEN);
         if(n == RESPONSE_LEN && buffer[0] == Response_Packet::COMMAND_START_CODE_1) {
             if(UseSerialDebug)
                 printf("FULL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
-            done = true;
             memcpy(resp, buffer, RESPONSE_LEN);
+            index += n;
         }
         else if(n < RESPONSE_LEN && n > 0) {
             if(UseSerialDebug)
                 printf("PARTIAL - RS232_PollComport read %d bytes and first is %d\n", n, buffer[0]);
             memcpy(resp + index, buffer, n);
             index += n;
-            if(index == RESPONSE_LEN)
-                done = true;
         }
         else {
             usleep(10*1000);
@@ -1047,11 +1049,9 @@ void FPS_GT511::SendToSerial(byte data[], int length)
     if (first) 
 		first=false; 
 	else 
-		//~ Serial.print(" ");
 		printf(" ");
     serialPrintHex(data[i]);
   }
-  //~ Serial.print("\"");
   printf("\"");
 }
 
@@ -1060,10 +1060,8 @@ void FPS_GT511::serialPrintHex(byte data)
 {
   char tmp[16];
   sprintf(tmp, "%.2X",data); 
-  //Serial.print(tmp); 
   printf("%s", tmp);
 }
-// #pragma endregion
 
 
 

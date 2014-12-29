@@ -64,8 +64,8 @@ char comports[COMPORT_NUM][32]={"/dev/ttyS0","/dev/ttyS1","/dev/ttyS2","/dev/tty
                        "/dev/cuaU0","/dev/cuaU1","/dev/cuaU2","/dev/cuaU3"
 #ifdef __APPLE__
                         ,
-                        "/dev/tty.usbserial-A601KUF6",
-                        "/dev/tty.usbserial-A601KUF7"
+                        "/dev/tty.usbserial",
+                        "/dev/tty.usbserial6"
 #endif
 };
 

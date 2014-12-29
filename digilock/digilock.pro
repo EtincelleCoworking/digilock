@@ -20,14 +20,18 @@ SOURCES += main.cpp \
     rs232.c \
     req.c \
     FPS_GT511Linux.cpp \
-    db.c
+    db.c \
+    bitmap.c \
+    led.cpp
 
 HEADERS += \
     rs232.h \
     req.h \
     ports.h \
     FPS_GT511Linux.h \
-    db.h
+    db.h \
+    bitmap.h \
+    led.h
 
 
 unix: CONFIG += link_pkgconfig

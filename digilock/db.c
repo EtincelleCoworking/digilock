@@ -98,7 +98,7 @@ static int exec(char * aSQL, bool aCommit, EDBAlert aAlertLevel) {
 		alert(aSQL, zErrMsg, aAlertLevel);
 		sqlite3_free(zErrMsg);
 	} else {
-		fprintf(stdout, "SQL OK: %s\n", aSQL);
+		//fprintf(stdout, "SQL OK: %s\n", aSQL);
 		if(aCommit) {
 			rc = sqlite3_exec(sDB, "END TRANSACTION;", NULL, NULL, NULL);
 			if(rc != SQLITE_OK ){
