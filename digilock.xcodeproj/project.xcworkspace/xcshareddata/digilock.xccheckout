@@ -10,31 +10,31 @@
 	<string>digilock</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>80858313E105F53E2D8DB01A7345CF555D8902C8</key>
-		<string>https://github.com/EtincelleCoworking/sesame.git</string>
+		<key>141E6AA9E647CCA3DD3561484104CA074FAC6BB1</key>
+		<string>https://github.com/EtincelleCoworking/digilock.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>gt511/digilock.xcodeproj</string>
+	<string>digilock.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>80858313E105F53E2D8DB01A7345CF555D8902C8</key>
-		<string>../../..</string>
+		<key>141E6AA9E647CCA3DD3561484104CA074FAC6BB1</key>
+		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/EtincelleCoworking/sesame.git</string>
+	<string>https://github.com/EtincelleCoworking/digilock.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>80858313E105F53E2D8DB01A7345CF555D8902C8</string>
+	<string>141E6AA9E647CCA3DD3561484104CA074FAC6BB1</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>80858313E105F53E2D8DB01A7345CF555D8902C8</string>
+			<string>141E6AA9E647CCA3DD3561484104CA074FAC6BB1</string>
 			<key>IDESourceControlWCCName</key>
-			<string>sesame</string>
+			<string>digilock</string>
 		</dict>
 	</array>
 </dict>

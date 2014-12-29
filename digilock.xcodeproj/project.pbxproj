@@ -46,7 +46,7 @@
 		6122FAF71A515D92008C2D43 /* rs232.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = rs232.h; path = digilock/rs232.h; sourceTree = SOURCE_ROOT; };
 		6122FAF81A515D92008C2D43 /* smtp-mail.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "smtp-mail.c"; path = "digilock/smtp-mail.c"; sourceTree = SOURCE_ROOT; };
 		6122FAFF1A5188F3008C2D43 /* bitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bitmap.c; path = digilock/bitmap.c; sourceTree = SOURCE_ROOT; };
-		6122FB021A5190B8008C2D43 /* bitmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bitmap.h; sourceTree = SOURCE_ROOT; };
+		6122FB031A519945008C2D43 /* bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bitmap.h; path = digilock/bitmap.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,8 +94,8 @@
 				6122FAF61A515D92008C2D43 /* rs232.c */,
 				6122FAF71A515D92008C2D43 /* rs232.h */,
 				6122FAF81A515D92008C2D43 /* smtp-mail.c */,
+				6122FB031A519945008C2D43 /* bitmap.h */,
 				6122FAFF1A5188F3008C2D43 /* bitmap.c */,
-				6122FB021A5190B8008C2D43 /* bitmap.h */,
 			);
 			name = digilock;
 			path = gt511osx;
