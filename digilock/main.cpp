@@ -87,11 +87,18 @@ void getline() {
 
 
 int enroll(int aUserID) {
-    FPS_GT511 *fps = scan_enroll->GetFPS();
+    FPS_GT511 * fps_enroll = scan_enroll->GetFPS();
+    FPS_GT511 * fps_entry = scan_entry->GetFPS();
 
+    int enrollid = 0;
+    bool usedid = true;
+    bool failed = true;
+    bool enrolled = false;
+    int iret = 0;
 
-    fps->SetLED(true);
-
+    fps_enroll->SetLED(true);
+    
+    
     // =============================
     // ask for user ID
     printf("Welcome to user creation and enrollment.\n");
@@ -106,90 +113,122 @@ int enroll(int aUserID) {
                 return -1;
             }
             else {
-                printf("User created with ID: %d\n", aUserID);
+                printf("User %s created with ID: %d\n", sBuffer, aUserID);
             }
         }
         else {
-            printf("User already exists with ID: %d\n", aUserID);
+            printf("User %s already exists with ID: %d\n", sBuffer, aUserID);
         }
     }
+    
 
     // =============================
-    // find open enroll id
-    int enrollid = 0;
-    bool usedid = true;
-    while (usedid == true)
-    {
-        usedid = fps->CheckEnrolled(enrollid);
+    // find free enroll id
+    while(usedid == true) {
+        usedid = fps_enroll->CheckEnrolled(enrollid);
         if (usedid == true) enrollid++;
     }
-    fps->EnrollStart(enrollid);
+    fps_enroll->EnrollStart(enrollid);
 
+    
+    // =============================
     // enroll
     printf("Enroll ID will be %d.\n", enrollid);
     printf("Press finger to enroll...\n");
 
-    while(fps->IsPressFinger() == false)
-        usleep(100 * 1000);
-    bool bret = fps->CaptureFinger(true);
-    int iret = 0;
-    if (bret != false)
-    {
-        printf("Remove finger\n");
-        fps->Enroll1();
-        while(fps->IsPressFinger() == true)
-            usleep(100 * 1000);
-        printf("Press same finger again\n");
-        while(fps->IsPressFinger() == false)
-            usleep(100 * 1000);
-        bret = fps->CaptureFinger(true);
-        if (bret != false)
-        {
+    // wait for finger press, then capture image
+    while(fps_enroll->IsPressFinger() == false) usleep(100 * 1000);
+    if(fps_enroll->CaptureFinger(true)) {
+        iret = fps_enroll->Enroll1();
+        if(iret == 0) {
+            // wait for finger release
             printf("Remove finger\n");
-            fps->Enroll2();
-            while(fps->IsPressFinger() == true)
-                usleep(100 * 1000);
-            printf("Press same finger yet again\n");
-            while(fps->IsPressFinger() == false)
-                usleep(100 * 1000);
-            bret = fps->CaptureFinger(true);
-            if (bret != false)
-            {
-                printf("Remove finger\n");
-                iret = fps->Enroll3();
-                if (iret == 0)
-                {
-                    printf("Enrolling Successful :)\n");
-                    printf("Binding UserID %d and Fingerprint ID %d...\n", aUserID, enrollid);
-                 
+            while(fps_enroll->IsPressFinger() == true) usleep(100 * 1000);
+            
+            // wait for finger press, then capture image
+            printf("Press same finger again\n");
+            while(fps_enroll->IsPressFinger() == false) usleep(100 * 1000);
+            if (fps_enroll->CaptureFinger(true)) {
+                iret = fps_enroll->Enroll2();
+                if(iret == 0) {
+                    // wait for finger release
+                    printf("Remove finger\n");
+                    while(fps_enroll->IsPressFinger() == true) usleep(100 * 1000);
                     
-                    /// GET TEMPLATE
-                    byte * buf = new byte[TEMPLATE_DATA_LEN];
-                    int retcode = fps->GetTemplate(enrollid, buf);
+                    // wait for finger press, then capture image
+                    printf("Press same finger yet again\n");
+                    while(fps_enroll->IsPressFinger() == false) usleep(100 * 1000);
+                    if (fps_enroll->CaptureFinger(true)) {
+                        iret = fps_enroll->Enroll3();
+                        if (iret == 0) {
+                            enrolled = true;
+                            printf("Enrolling Successful :)\n");
+                            printf("Binding UserID %d and Fingerprint ID %d...\n", aUserID, enrollid);
+                            
+                            // get template
+                            byte * buf = new byte[TEMPLATE_DATA_LEN];
+                            if(0 == fps_enroll->GetTemplate(enrollid, buf)) {
+                                
+                                // upload template
+                                if(0 == fps_entry->SetTemplate(buf, enrollid, false)) {
+                                    db_insert_fingerprint(aUserID, enrollid, buf);
+                                    db_insert_event(enrollid, EEventTypeEnroll, true);
 
-                    db_insert_fingerprint(aUserID, enrollid, buf);
-                    db_insert_event(enrollid, EEventTypeEnroll, true);
-                    printf("Done.");
-                    
-                    
-                    FPS_GT511 * entry = scan_entry->GetFPS();
-                    entry->SetTemplate(buf, enrollid, false);
+                                    // =============================
+                                    // SUCCESS !!!
+                                    printf("Template uploaded, all OK :)\n");
+                                    failed = false;
+                                    
+                                } // fi set template
+                                else {
+                                    printf("Template upload failed :(\n");
+                                }
+                            } // fi get template
+                            else {
+                                printf("Template download failed :(\n");
+                            }
+                        } // fi enroll 3
+                        else {
+                            printf("Failed to enroll third finger (%d)\n", iret);
+                        }
+                    } // fi capture 3
+                    else {
+                        printf("Failed to capture third finger\n");
+                    }
+                } // fi enroll 2
+                else {
+                    printf("Failed to enroll second finger (%d)\n", iret);
                 }
-                else
-                {
-                    printf("Enrolling Failed with error code: %d\n", iret);
-                    db_insert_event(enrollid, EEventTypeEnroll, false);
-                }
+            } // fi capture 2
+            else {
+                printf("Failed to capture second finger\n");
             }
-            else printf("Failed to capture third finger\n");
+        } // fi enroll 1
+        else {
+            printf("Failed to enroll first finger (%d)\n", iret);
         }
-        else printf("Failed to capture second finger\n");
+    } // fi capture 1
+    else {
+        printf("Failed to capture first finger\n");
     }
-    else printf("Failed to capture first finger\n");
-
     
-    fps->SetLED(false);
-    return 0;
+    if (failed) {
+        // remove fgp id cuz something went wrong
+        if(enrolled) {
+            printf("Removing fingerprint...");
+            if(fps_enroll->DeleteID(enrollid) == false) {
+                printf(" error ! Please hack !\n");
+            }
+            else {
+                printf(" done.\n");
+            }
+        }
+        db_insert_event(enrollid, EEventTypeEnroll, false);
+    }
+    
+    strcpy(sBuffer, "");
+    fps_enroll->SetLED(false);
+    return failed ? -1 : 0;
 }
 
 
@@ -228,11 +267,11 @@ int main() {
 //    scan_entry->GetFPS()->UseSerialDebug = true;
     scan_entry->GetFPS()->DeleteAll();
     scan_enroll->GetFPS()->DeleteAll();
-    
+//    
     db_drop_tables();
     db_close();
     db_open();
-    enroll(-1);
+//    enroll(-1);
     
     
 //    int count = scan_enroll->GetFPS()->GetEnrollCount();
@@ -260,9 +299,6 @@ int main() {
     scan_entry->SetEnabled(true);
     scan_exit->SetEnabled(true);
     
-    
-    
-    
     pthread_t thr_blink;
     
     do {
@@ -271,12 +307,10 @@ int main() {
         if (1) {
             if(strcasecmp(sBuffer, COMMAND_ENROLL) == 0) {
                 scan_exit->SetEnabled(false);
-                if(enroll(-1) == 0) {
-                    // TODO: sync GT511s
-                }
-                else {
-                    
-                }
+                scan_entry->SetEnabled(false);
+                enroll(-1);
+                scan_exit->SetEnabled(true);
+                scan_entry->SetEnabled(true);
             }
             else if(strcasecmp(sBuffer, COMMAND_PAUSE_ENTRY) == 0) {
                 scan_entry->SetEnabled(false);

@@ -213,8 +213,7 @@ int oem_add_template(int comport, BYTE *data, int nPos)
     if( oem_CommandRun(comport, CMD_ADD_TEMPLATE, nPos ) < 0 )
         return OEM_COMM_ERR;
     
-    if(gwLastAck == ACK_OK)
-    {
+    if(gwLastAck == ACK_OK) {
         if( oemp_SendData(comport, gwDevID, /*&gbyTemplate[0]*/data, FP_TEMPLATE_SIZE ) < 0 )
             return OEM_COMM_ERR;
         

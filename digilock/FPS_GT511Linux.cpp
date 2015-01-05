@@ -9,7 +9,6 @@
 #include "FPS_GT511Linux.h"
 #include "bitmap.h"
 #include <sys/time.h>
-
 #include "win32code.h"
 
 long long millisecs() {
@@ -546,21 +545,25 @@ int FPS_GT511::Enroll3()
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Enroll3;
 	byte* packetbytes = cp->GetPacketBytes();
-	delete cp;
 	SendCommand(packetbytes, COMMAND_PACKET_LEN);
-	delete[] packetbytes;
+    
+    usleep(100 * 1000);
+    
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
-	if (retval < MAX_FGP_COUNT) retval = 3; else retval = 0;
 	if (rp->ACK == false)
 	{
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_BAD_FINGER) retval = 2;
+        if (retval < MAX_FGP_COUNT) retval = 3;
 	}
-    if (rp->ACK)
+    else {
         retval = 0;
+    }
+    delete cp;
+    delete[] packetbytes;
     delete rp;
-    return  retval;
+    return retval;
 }
 
 // Checks to see if a finger is pressed on the FPS
@@ -694,15 +697,8 @@ bool FPS_GT511::CaptureFinger(bool highquality)
         printf("FPS - CaptureFinger\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::CaptureFinger;
-	if (highquality)
-	{
-		cp->ParameterFromInt(1);
-	}
-	else
-	{
-		cp->ParameterFromInt(0);
-	}
-	byte* packetbytes = cp->GetPacketBytes();
+    cp->ParameterFromInt(!!highquality);
+    byte * packetbytes = cp->GetPacketBytes();
 	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
@@ -710,7 +706,6 @@ bool FPS_GT511::CaptureFinger(bool highquality)
 	delete[] packetbytes;
 	delete cp;
 	return retval;
-
 }
 
 
@@ -747,10 +742,7 @@ int FPS_GT511::GetImage(byte * aBuffer)
 int FPS_GT511::SetTemplate(byte* aTemplateBytes, int aFingerprintID, bool duplicateCheck) {
     int ret = 0;
     
-    
-    
-    //return oem_add_template(_com_port, aTemplateBytes, aFingerprintID);
-    
+    //return oem_add_template(_com_port, aTemplateBytes, ((duplicateCheck << 16) & 0xFF) | aFingerprintID);
     
     // send command
     if (UseSerialDebug)
@@ -762,17 +754,21 @@ int FPS_GT511::SetTemplate(byte* aTemplateBytes, int aFingerprintID, bool duplic
     byte * packetbytes = cp->GetPacketBytes();
     SendCommand(packetbytes);
     
+    usleep(100 * 1000);
+    
     // get response
     Response_Packet* rp = GetResponse();
     if(rp->ACK) {
         // send data
+        usleep(100 * 1000);
         SendData(aTemplateBytes, TEMPLATE_DATA_LEN);
+        usleep(100 * 1000);
         
         // get response
         delete rp;
         rp = GetResponse();
         if(rp->ACK) {
-
+            ret = 0;
         }
         else {
             ret = rp->IntFromParameter();

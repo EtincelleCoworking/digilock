@@ -98,7 +98,7 @@ int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResul
         /* Now specify the POST data */
         char str[256];
         sprintf(str, "when=%lld&kind=%d&fingerprint_id=%d&result=%d", aTimestamp, aEventType, aFingerprintID, aResult);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_encode(str));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (str));
 
         /* Perform the request, res will get the return code */
         res = curl_easy_perform(curl);
@@ -128,8 +128,8 @@ int req_user(int aUserID, char * aEmail) {
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
         char str[256];
-      sprintf(str, "id=%d&email=%s", aUserID, aEmail);
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_encode(str));
+      sprintf(str, "id=%d&email=%s", aUserID, url_encode(aEmail));
+      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
       res = curl_easy_perform(curl);
       if(res != CURLE_OK)
@@ -159,8 +159,8 @@ int req_fgp(int aUserID, int aFingerprintID, uint8_t * aData) {
         
         // TODO: make base64 string w/ 
         char * data64 = "TODO :[";
-        sprintf(str, "id=%d&image=%s", aFingerprintID, data64);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_encode(str));
+        sprintf(str, "id=%d&image=%s", aFingerprintID, url_encode(data64));
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
         res = curl_easy_perform(curl);
         if(res != CURLE_OK)
