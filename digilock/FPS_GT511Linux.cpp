@@ -252,7 +252,7 @@ FPS_GT511::FPS_GT511(int port, int baud, const char * mode) {
 		_baud_rate = baud;
 		_mode = mode;
         _available = true;
-        _mutex = PTHREAD_MUTEX_INITIALIZER;
+        pthread_mutex_init(& _mutex , NULL);
     }
     _open = false;
 }
