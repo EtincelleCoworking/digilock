@@ -9,6 +9,10 @@
 #include "scanner.h"
 #include <string>
 
+#ifndef __APPLE__
+#  include "wiringPi.h"
+#endif
+
 #define FPS_BAUD        9600
 static char sMode[] =   {'8', 'N', '1', 0};
 
@@ -124,24 +128,28 @@ bool Scanner::IsEnabled() {
 
 void Scanner::ShowLED(ELEDType aLEDType, bool aEnable) {
     
+#ifndef __APPLE__
     if(aEnable) {
         // turn off all LEDs
-        
+        digitalWrite(_led_ok, LOW);
+        digitalWrite(_led_wait, LOW);
+        digitalWrite(_led_nok, LOW);
     }
     
     switch (aLEDType) {
         case ELEDTypeOK:
-            
+            digitalWrite(_led_ok, HIGH);
             break;
         case ELEDTypeNOK:
-            
+            digitalWrite(_led_nok, HIGH);
             break;
         case ELEDTypeWait:
-            
+            digitalWrite(_led_wait, HIGH);
             break;
         default:
             break;
     }
+#endif
 }
 
 void Scanner::SetEnabled(bool aEnabled) {
@@ -173,6 +181,12 @@ Scanner::Scanner(int aPort, bool aDebug, const char * aName, EEventType aEventTy
     _fps = new FPS_GT511(aPort, FPS_BAUD, sMode);
     _fps->UseSerialDebug = aDebug;
     _fps->Open();
+
+#ifndef __APPLE__
+    pinMode (_led_ok, OUTPUT);
+    pinMode (_led_wait, OUTPUT);
+    pinMode (_led_nok, OUTPUT);
+#endif
 }
 
 
