@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "09A1A4231A4FF31000B55324"
-               BuildableName = "gt511osx"
-               BlueprintName = "gt511osx"
-               ReferencedContainer = "container:gt511osx.xcodeproj">
+               BuildableName = "digilock"
+               BlueprintName = "digilock"
+               ReferencedContainer = "container:digilock.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "09A1A4231A4FF31000B55324"
-            BuildableName = "gt511osx"
-            BlueprintName = "gt511osx"
-            ReferencedContainer = "container:gt511osx.xcodeproj">
+            BuildableName = "digilock"
+            BlueprintName = "digilock"
+            ReferencedContainer = "container:digilock.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </TestAction>
@@ -43,7 +43,8 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
-      useCustomWorkingDirectory = "NO"
+      useCustomWorkingDirectory = "YES"
+      customWorkingDirectory = "$(PROJECT_DIR)"
       buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
@@ -52,9 +53,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "09A1A4231A4FF31000B55324"
-            BuildableName = "gt511osx"
-            BlueprintName = "gt511osx"
-            ReferencedContainer = "container:gt511osx.xcodeproj">
+            BuildableName = "digilock"
+            BlueprintName = "digilock"
+            ReferencedContainer = "container:digilock.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -70,9 +71,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "09A1A4231A4FF31000B55324"
-            BuildableName = "gt511osx"
-            BlueprintName = "gt511osx"
-            ReferencedContainer = "container:gt511osx.xcodeproj">
+            BuildableName = "digilock"
+            BlueprintName = "digilock"
+            ReferencedContainer = "container:digilock.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
