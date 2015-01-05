@@ -9,10 +9,6 @@
 #include "scanner.h"
 #include <string>
 
-#ifndef __APPLE__
-#  include "wiringPi.h"
-#endif
-
 #define FPS_BAUD        9600
 static char sMode[] =   {'8', 'N', '1', 0};
 
@@ -37,6 +33,9 @@ static void * scan_thread(void * aScanner) {
         if(fps->IsPressFinger()) {
             // finger pressed, continue if there was no finger before
             if(detect) {
+                // turn off detection, will be turned on when finger is released
+                detect = false;
+
                 // turn on orange LED
                 scanner->ShowLED(ELEDTypeWait, true);
                 fps->CaptureFinger(false);
@@ -54,8 +53,6 @@ static void * scan_thread(void * aScanner) {
                     scanner->ShowLED(ELEDTypeNOK, true);
                     db_insert_event(-1, scanner->GetEvent(), false);
                 }
-                // turn off detection, will be turned on when finger is released
-                detect = false;
             }
         }
         else {
@@ -126,29 +123,61 @@ bool Scanner::IsEnabled() {
 }
 
 
+static void * thread_shut_leds(void * aScanner) {
+    // turn off all LEDs
+    usleep(2000 * 1000);
+
+    Scanner * scanner = (Scanner *)aScanner;
+    scanner->ShutdownLEDs();
+}
+
+
+void Scanner::ShutdownLEDs() {
+#ifndef __APPLE__
+
+    digitalWrite(_led_ok, LOW);
+    digitalWrite(_led_wait, LOW);
+    digitalWrite(_led_nok, LOW);
+    //printf("all leds off\n");
+#endif
+}
+
 void Scanner::ShowLED(ELEDType aLEDType, bool aEnable) {
-    
+
 #ifndef __APPLE__
     if(aEnable) {
         // turn off all LEDs
-        digitalWrite(_led_ok, LOW);
-        digitalWrite(_led_wait, LOW);
-        digitalWrite(_led_nok, LOW);
+        ShutdownLEDs();
     }
     
     switch (aLEDType) {
         case ELEDTypeOK:
-            digitalWrite(_led_ok, HIGH);
+            digitalWrite(_led_ok, aEnable ? HIGH : LOW);
+            if(aEnable) {
+                pthread_t temp;
+                pthread_create(&temp, NULL, thread_shut_leds, this);
+            }
+            //printf("OK on\n");
             break;
         case ELEDTypeNOK:
-            digitalWrite(_led_nok, HIGH);
+            digitalWrite(_led_nok, aEnable ? HIGH : LOW);
+            if(aEnable) {
+                pthread_t temp;
+                pthread_create(&temp, NULL, thread_shut_leds, this);
+            }
+            //printf("NOK on\n");
             break;
         case ELEDTypeWait:
-            digitalWrite(_led_wait, HIGH);
+            digitalWrite(_led_wait, aEnable ? HIGH : LOW);
+            //printf("WAIT on\n");
             break;
         default:
             break;
     }
+
+
+
+
 #endif
 }
 

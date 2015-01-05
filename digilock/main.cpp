@@ -260,17 +260,21 @@ int main() {
     // init sqlite, curl and devices
     db_open();
     req_init();
-    
+
+#ifndef __APPLE__
+    wiringPiSetup();
+    pcf8574Setup(65, 0x27);
+#endif
     
     // =================================================================
 //    scan_enroll->GetFPS()->UseSerialDebug = true;
 //    scan_entry->GetFPS()->UseSerialDebug = true;
-    scan_entry->GetFPS()->DeleteAll();
-    scan_enroll->GetFPS()->DeleteAll();
-//    
-    db_drop_tables();
-    db_close();
-    db_open();
+//    scan_entry->GetFPS()->DeleteAll();
+//    scan_enroll->GetFPS()->DeleteAll();
+////
+//    db_drop_tables();
+//    db_close();
+//    db_open();
 //    enroll(-1);
     
     

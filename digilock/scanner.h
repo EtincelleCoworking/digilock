@@ -14,7 +14,10 @@
 #include "db.h"
 #include "req.h"
 #include "FPS_GT511Linux.h"
-
+#ifndef __APPLE__
+#  include "wiringPi.h"
+#  include "pcf8574.h"
+#endif
 
 
 typedef enum {
@@ -38,7 +41,7 @@ public:
     void            ShowLED(ELEDType aLEDType, bool aEnable);
     const char *    GetName();
     EEventType      GetEvent();
-    
+    void            ShutdownLEDs();
     void            Dump();
     
 private:

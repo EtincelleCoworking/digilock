@@ -16,9 +16,9 @@
 //#endif
 
 typedef enum {
-    ELEDPinEntryOK = 11,
-    ELEDPinEntryNOK,
-    ELEDPinEntryWait,
+    ELEDPinEntryOK = 7, // GPIO7 / header 7
+    ELEDPinEntryNOK = 0, // GPIO0 / header 11
+    ELEDPinEntryWait = 2, // GPIO2 / header 13
     ELEDPinExitOK,
     ELEDPinExitNOK,
     ELEDPinExitWait,
