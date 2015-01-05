@@ -58,7 +58,8 @@ write_bmp(const char *filename, int width, int height, char *rgb)
     
     bytesPerLine = (3 * (width + 1) / 4) * 4;
     
-    strcpy(bmph.bfType, "BM");
+    bmph.bfType[0] = 'B';
+    bmph.bfType[1] = 'M';
     bmph.bfOffBits = 54;
     bmph.bfSize = bmph.bfOffBits + bytesPerLine * height;
     bmph.bfReserved = 0;

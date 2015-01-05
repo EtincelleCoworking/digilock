@@ -12,6 +12,9 @@
 
 #define SERVER_BASE_URL     "http://sesame.coworking-toulouse.com/"
 
+#include <inttypes.h>
+#include <string.h>
+
 /* Converts a hex character to its integer value */
 char from_hex(char ch) {
   return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
@@ -77,7 +80,7 @@ int req_cleanup() {
 int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResult) {
 
     CURL *curl;
-    CURLcode res;
+    CURLcode res = -1;
 
     /* In windows, this will init the winsock stuff */
     // curl_global_init(CURL_GLOBAL_ALL);
@@ -114,7 +117,7 @@ int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResul
 int req_user(int aUserID, char * aEmail) {
 
     CURL *curl;
-    CURLcode res;
+    CURLcode res = -1;
 
     curl = curl_easy_init();
     if(curl) {
@@ -140,27 +143,30 @@ int req_user(int aUserID, char * aEmail) {
 
 
 
-int req_fgp(int aUserID, int aFingerprintID, char * aData64) {
+int req_fgp(int aUserID, int aFingerprintID, uint8_t * aData) {
     CURL *curl;
-    CURLcode res;
+    CURLcode res = -1;
 
     curl = curl_easy_init();
     if(curl) {
 
-       char url[256];
-       sprintf(url, "%s%s%d%s", SERVER_BASE_URL, "api/user/", aUserID, "/fingerprint");
+        char url[256];
+        sprintf(url, "%s%s%d%s", SERVER_BASE_URL, "api/user/", aUserID, "/fingerprint");
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
         char str[256];
-      sprintf(str, "id=%d&image=%s", aFingerprintID, aData64);
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_encode(str));
+        
+        // TODO: make base64 string w/ 
+        char * data64 = "TODO :[";
+        sprintf(str, "id=%d&image=%s", aFingerprintID, data64);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, url_encode(str));
 
-      res = curl_easy_perform(curl);
-      if(res != CURLE_OK)
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK)
             fprintf(stderr, "req_fgp() failed: %s\n",  curl_easy_strerror(res));
 
-      curl_easy_cleanup(curl);
+        curl_easy_cleanup(curl);
     }
     return (int)res;
 }

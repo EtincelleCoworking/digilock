@@ -23,7 +23,7 @@ int req_init();
 int req_cleanup();
 int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResult);
 int req_user(int aUserID, char * aEmail);
-int req_fgp(int aUserID, int aFingerprintID, char * aData64);
+int req_fgp(int aUserID, int aFingerprintID, uint8_t * aData);
     
     
 #ifdef __cplusplus

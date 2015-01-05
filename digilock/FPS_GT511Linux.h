@@ -147,6 +147,25 @@ class Response_Packet
 		byte GetHighByte(word w);						
 		byte GetLowByte(word w);
 };
+
+#define COMMAND_PACKET_LEN      12
+    
+    
+#define DATA_START_CODE_1       0x5a
+#define DATA_START_CODE_2       0xa5
+#define DATA_DEVICE_ID_1        0x01
+#define DATA_DEVICE_ID_2        0x00
+#define DATA_HEADER_LEN         2
+#define DATA_DEVICE_ID_LEN      2
+#define DATA_CHECKSUM_LEN       2
+
+#define TEMPLATE_DATA_LEN       498
+#define IMAGE_DATA_LEN          (258 * 202)
+#define RAW_IMAGE_DATA_LEN      (160 * 120)
+
+#define RESPONSE_TIMEOUT_MS     2000
+
+
 // #pragma endregion
 
 // #pragma region -= Data_Packet =-
@@ -290,14 +309,14 @@ class FPS_GT511
 	// Returns: True (device confirming download starting)
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-    bool GetImage();
+    int GetImage(byte * aBuffer);
 
 	// Gets an image that is qvga 160x120 (19200 bytes) and returns it in 150 Data_Packets
 	// Use StartDataDownload, and then GetNextDataPacket until done
 	// Returns: True (device confirming download starting)
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-	//bool GetRawImage();
+	int GetRawImage(byte * aBuffer);
 
 	// Gets a template from the fps (498 bytes) in 4 Data_Packets
 	// Use StartDataDownload, and then GetNextDataPacket until done
@@ -309,7 +328,7 @@ class FPS_GT511
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
     int MakeTemplate(int fgpid);
-    int GetTemplate(int fgpid, byte * tmp);
+    int GetTemplate(int fgpid, byte*data);
 
 	// Uploads a template to the fps 
 	// Parameter: the template (498 bytes)
@@ -336,12 +355,8 @@ class FPS_GT511
 	// UpgradeISOCDImage - Data Sheet says not supported
 	// SetIAPMode - for upgrading firmware (which is not supported)
 	// Ack and Nack	are listed as a commands for some unknown reason... not implemented
-    // #pragma endregion
 
-    // #pragma endregion
-
-	void serialPrintHex(byte data);
-	void SendToSerial(byte data[], int length);
+	void DebugBytes(byte data[], int length);
 
 	// resets the Data_Packet class, and gets ready to download
 	// Not implemented due to memory restrictions on the arduino
@@ -354,10 +369,13 @@ class FPS_GT511
 	//Data_Packet GetNextDataPacket();
 
 private:
+    void SendCommand(byte cmd[]);
     void SendCommand(byte cmd[], int length);
+    void SendData(byte data[], int length);
     Response_Packet* GetResponse();
     byte * GetResponse(int aExpectedByteCount);
-
+    int GetData(byte * aBuffer, int aExpectedByteCount);
+    
     int _com_port;
     int _baud_rate;
     bool _available;
@@ -365,6 +383,10 @@ private:
     pthread_mutex_t _mutex;
     const char * _mode;
 };
+
+
+
+
 
 
 #endif

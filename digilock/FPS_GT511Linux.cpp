@@ -8,6 +8,17 @@
 
 #include "FPS_GT511Linux.h"
 #include "bitmap.h"
+#include <sys/time.h>
+
+#include "win32code.h"
+
+long long millisecs() {
+    struct timeval te;
+    gettimeofday(&te, NULL); // get current time
+    long long milliseconds = te.tv_sec * 1000LL + te.tv_usec / 1000; // caculate milliseconds
+    return milliseconds;
+}
+
 
 // #pragma region -= Command_Packet Definitions =-
 
@@ -52,13 +63,13 @@ void Command_Packet::ParameterFromInt(int i)
 // Returns the high byte from a word
 byte Command_Packet::GetHighByte(word w)
 {
-	return (byte)(w>>8)&0x00FF;
+	return (byte)(w >> 8) & 0x00FF;
 }
 
 // Returns the low byte from a word
 byte Command_Packet::GetLowByte(word w)
 {
-	return (byte)w&0x00FF;
+	return (byte)w & 0x00FF;
 }
 
 word Command_Packet::_CalculateChecksum()
@@ -81,9 +92,9 @@ word Command_Packet::_CalculateChecksum()
 Command_Packet::Command_Packet()
 {
 };
-// #pragma endregion
 
-// #pragma region -= Response_Packet Definitions =-
+
+
 // creates and parses a response packet from the finger print scanner
 Response_Packet::Response_Packet(byte* buffer, bool UseSerialDebug)
 {
@@ -91,8 +102,8 @@ Response_Packet::Response_Packet(byte* buffer, bool UseSerialDebug)
 	CheckParsing(buffer[1], COMMAND_START_CODE_2, COMMAND_START_CODE_2, "COMMAND_START_CODE_2", UseSerialDebug);
 	CheckParsing(buffer[2], COMMAND_DEVICE_ID_1, COMMAND_DEVICE_ID_1, "COMMAND_DEVICE_ID_1", UseSerialDebug);
 	CheckParsing(buffer[3], COMMAND_DEVICE_ID_2, COMMAND_DEVICE_ID_2, "COMMAND_DEVICE_ID_2", UseSerialDebug);
-	CheckParsing(buffer[8], 0x30, 0x31, "AckNak_LOW", UseSerialDebug);
-	if (buffer[8] == 0x30) ACK = true; else ACK = false;
+    CheckParsing(buffer[8], Command_Packet::Commands::Ack, Command_Packet::Commands::Nack, "AckNak_LOW", UseSerialDebug);
+	if (buffer[8] == Command_Packet::Commands::Ack) ACK = true; else ACK = false;
 	CheckParsing(buffer[9], 0x00, 0x00, "AckNak_HIGH", UseSerialDebug);
 
 	word checksum = CalculateChecksum(buffer, 10);
@@ -122,7 +133,7 @@ Response_Packet::ErrorCodes::Errors_Enum Response_Packet::ErrorCodes::ParseFromB
 	if (high == 0x00)
 	{
 	}
-	if (high == 0x01)
+	if (high == 0x10)
 	{
 		switch(low)
 		{
@@ -269,20 +280,19 @@ void FPS_GT511::Open()
         
     
 	if (UseSerialDebug) 
-        //~ Serial.println("FPS - Open");
         printf("FPS - Open\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Open;
-	cp->Parameter[0] = 0x00;
-	cp->Parameter[1] = 0x00;
-	cp->Parameter[2] = 0x00;
-	cp->Parameter[3] = 0x00;
-	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
-	Response_Packet* rp = GetResponse();
+	cp->ParameterFromInt(0x0);
+	byte * packetbytes = cp->GetPacketBytes();
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
+	Response_Packet * rp = GetResponse();
     _open = true;
+    
+    delete cp;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
+    return;
 }
 
 // According to the DataSheet, this does nothing... 
@@ -298,16 +308,13 @@ void FPS_GT511::Close()
         printf("FPS - Close\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Close;
-	cp->Parameter[0] = 0x00;
-	cp->Parameter[1] = 0x00;
-	cp->Parameter[2] = 0x00;
-	cp->Parameter[3] = 0x00;
+	cp->ParameterFromInt(0x00);
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
     _open = false;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 };
 
 // Turns on or off the LED backlight
@@ -336,13 +343,13 @@ bool FPS_GT511::SetLED(bool on)
 	cp->Parameter[2] = 0x00;
 	cp->Parameter[3] = 0x00;
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	bool retval = true;
 	if (rp->ACK == false) retval = false;
 
     delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	delete cp;
 	return retval;
 }
@@ -363,7 +370,7 @@ bool FPS_GT511::ChangeBaudRate(int baud)
 		cp->Command = Command_Packet::Commands::Open;
 		cp->ParameterFromInt(baud);
 		byte* packetbytes = cp->GetPacketBytes();
-		SendCommand(packetbytes, 12);
+		SendCommand(packetbytes, COMMAND_PACKET_LEN);
 		Response_Packet* rp = GetResponse();
 		bool retval = rp->ACK;
 		if (retval) 
@@ -379,7 +386,7 @@ bool FPS_GT511::ChangeBaudRate(int baud)
 			}
 		}
 		delete rp;
-		delete packetbytes;
+		delete[] packetbytes;
 		return retval;
 	}
 	return false;
@@ -389,22 +396,23 @@ bool FPS_GT511::ChangeBaudRate(int baud)
 // Return: The total number of enrolled fingerprints
 int FPS_GT511::GetEnrollCount()
 {
+    if(!_available)
+        return -1;
+    
 	if (UseSerialDebug) 
         //~ Serial.println("FPS - GetEnrolledCount");
         printf("FPS - GetEnrolledCount\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::GetEnrollCount;
-	cp->Parameter[0] = 0x00;
-	cp->Parameter[1] = 0x00;
-	cp->Parameter[2] = 0x00;
-	cp->Parameter[3] = 0x00;
-	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
-	Response_Packet* rp = GetResponse();
+    cp->ParameterFromInt(0x0);
+	byte * packetbytes = cp->GetPacketBytes();
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
+	Response_Packet * rp = GetResponse();
 
 	int retval = rp->IntFromParameter();
+    delete cp;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	return retval;
 }
 
@@ -421,8 +429,8 @@ bool FPS_GT511::CheckEnrolled(int id)
 	cp->ParameterFromInt(id);
 	byte* packetbytes = cp->GetPacketBytes();
 	delete cp;
-	SendCommand(packetbytes, 12);
-	delete packetbytes;
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
+	delete[] packetbytes;
 	Response_Packet* rp = GetResponse();
 	bool retval = false;
 	retval = rp->ACK;
@@ -447,8 +455,8 @@ int FPS_GT511::EnrollStart(int id)
 	cp->ParameterFromInt(id);
 	byte* packetbytes = cp->GetPacketBytes();
 	delete cp;
-	SendCommand(packetbytes, 12);
-	delete packetbytes;
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
+	delete[] packetbytes;
 	Response_Packet* rp = GetResponse();
 	int retval = 0;
 	if (rp->ACK == false)
@@ -469,15 +477,16 @@ int FPS_GT511::EnrollStart(int id)
 //	3 - ID in use
 int FPS_GT511::Enroll1()
 {
+    int ret = 0;
 	if (UseSerialDebug) 
         //~ Serial.println("FPS - Enroll1");
         printf("FPS - Enroll1\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Enroll1;
 	byte* packetbytes = cp->GetPacketBytes();
-	delete cp;
-	SendCommand(packetbytes, 12);
-	delete packetbytes;
+	SendCommand(packetbytes);
+    delete cp;
+	delete[] packetbytes;
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
 	if (retval < MAX_FGP_COUNT) retval = 3; else retval = 0;
@@ -486,8 +495,9 @@ int FPS_GT511::Enroll1()
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_BAD_FINGER) retval = 2;
 	}
-	delete rp;
-	if (rp->ACK) return 0; else return retval;
+    ret = rp->ACK ? 0 : retval;
+    delete rp;
+    return ret;
 }
 
 // Gets the Second scan of an enrollment
@@ -505,8 +515,8 @@ int FPS_GT511::Enroll2()
 	cp->Command = Command_Packet::Commands::Enroll2;
 	byte* packetbytes = cp->GetPacketBytes();
 	delete cp;
-	SendCommand(packetbytes, 12);
-	delete packetbytes;
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
+	delete[] packetbytes;
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
 	if (retval < MAX_FGP_COUNT) retval = 3; else retval = 0;
@@ -515,8 +525,10 @@ int FPS_GT511::Enroll2()
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_BAD_FINGER) retval = 2;
 	}
-	delete rp;
-	if (rp->ACK) return 0; else return retval;
+	if (rp->ACK)
+        retval = 0;
+    delete rp;
+    return  retval;
 }
 
 // Gets the Third scan of an enrollment
@@ -535,8 +547,8 @@ int FPS_GT511::Enroll3()
 	cp->Command = Command_Packet::Commands::Enroll3;
 	byte* packetbytes = cp->GetPacketBytes();
 	delete cp;
-	SendCommand(packetbytes, 12);
-	delete packetbytes;
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
+	delete[] packetbytes;
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
 	if (retval < MAX_FGP_COUNT) retval = 3; else retval = 0;
@@ -545,21 +557,26 @@ int FPS_GT511::Enroll3()
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_ENROLL_FAILED) retval = 1;
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_BAD_FINGER) retval = 2;
 	}
-	delete rp;
-	if (rp->ACK) return 0; else return retval;
+    if (rp->ACK)
+        retval = 0;
+    delete rp;
+    return  retval;
 }
 
 // Checks to see if a finger is pressed on the FPS
 // Return: true if finger pressed, false if not
 bool FPS_GT511::IsPressFinger()
 {
+    if(!_available)
+        return false;
+    
 	if (UseSerialDebug) 
         //~ Serial.println("FPS - IsPressFinger");
         printf("FPS - IsPressFinger\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::IsPressFinger;
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	bool retval = false;
 	int pval = rp->ParameterBytes[0];
@@ -568,7 +585,7 @@ bool FPS_GT511::IsPressFinger()
 	pval += rp->ParameterBytes[3];
 	if (pval == 0) retval = true;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	delete cp;
 	return retval;
 }
@@ -585,11 +602,11 @@ bool FPS_GT511::DeleteID(int id)
 	cp->Command = Command_Packet::Commands::DeleteID;
 	cp->ParameterFromInt(id);
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	delete cp;
 	return retval;
 }
@@ -604,11 +621,11 @@ bool FPS_GT511::DeleteAll()
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::DeleteAll;
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	delete cp;
 	return retval;
 }
@@ -629,7 +646,7 @@ int FPS_GT511::Verify1_1(int id)
 	cp->Command = Command_Packet::Commands::Verify1_1;
 	cp->ParameterFromInt(id);
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	int retval = 0;
 	if (rp->ACK == false)
@@ -639,7 +656,7 @@ int FPS_GT511::Verify1_1(int id)
 		if (rp->Error == Response_Packet::ErrorCodes::NACK_VERIFY_FAILED) retval = 3;
 	}
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	delete cp;
 	return retval;
 }
@@ -656,12 +673,12 @@ int FPS_GT511::Identify1_N()
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::Identify1_N;
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	int retval = rp->IntFromParameter();
 	if (retval > MAX_FGP_COUNT) retval = MAX_FGP_COUNT;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	delete cp;
     return retval;
 }
@@ -686,84 +703,88 @@ bool FPS_GT511::CaptureFinger(bool highquality)
 		cp->ParameterFromInt(0);
 	}
 	byte* packetbytes = cp->GetPacketBytes();
-	SendCommand(packetbytes, 12);
+	SendCommand(packetbytes, COMMAND_PACKET_LEN);
 	Response_Packet* rp = GetResponse();
 	bool retval = rp->ACK;
 	delete rp;
-	delete packetbytes;
+	delete[] packetbytes;
 	delete cp;
 	return retval;
 
 }
-// // #pragma endregion
 
-// // #pragma region -= Not imlemented commands =-
+
 // Gets an image that is 258x202 (52116 bytes) and returns it in 407 Data_Packets
 // Use StartDataDownload, and then GetNextDataPacket until done
 // Returns: True (device confirming download starting)
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-bool FPS_GT511::GetImage()
+int FPS_GT511::GetImage(byte * aBuffer)
 {
-//	 Not implemented due to memory restrictions on the arduino
-//	 may revisit this if I find a need for it
-
-
-    int retcode = 0;
+    int ret = -1;
     
     if (UseSerialDebug)
-        printf("FPS - GetTemplate\n");
+        printf("FPS - GetImage\n");
     Command_Packet* cp = new Command_Packet();
     cp->Command = Command_Packet::Commands::GetImage;
-    
-    byte* packetbytes = cp->GetPacketBytes();
-    SendCommand(packetbytes, 12);
-    
-    
-#define data_len 258*202
+    byte * packetbytes = cp->GetPacketBytes();
+    SendCommand(packetbytes);
     
     usleep(100*1000);
     
     Response_Packet* rp = GetResponse();
-    
     if(rp->ACK) {
-        struct {
-            byte startCode1;
-            byte startCode2;
-            word deviceID;
-            byte data[data_len];
-            word checksum;
-        } dp;
-        
-        byte * resp = GetResponse(sizeof(dp));
-        dp.startCode1 = resp[0];
-        dp.startCode2 = resp[1];
-        dp.deviceID = (resp[3] << 8) + resp[2];
-        
-        for(int i = 0; i < data_len; i++)
-            dp.data[i] = resp[i + 2];
-        
-        dp.checksum = (resp[data_len+5] << 8) + resp[data_len+4];
-        
-        char rgb[data_len];
-        for(int i = 0; i < data_len; i++)
-            rgb[i] = resp[data_len + 2];
-
-        const char * file  = "bitmap.bmp";
-        write_bmp(file, 258, 202, rgb);
+        ret = GetData(aBuffer, IMAGE_DATA_LEN);
     }
     else {
         // NACK_INVALID_POS
         // NACK IS NOT USED
     }
     
-    return false;
+    return ret;
 }
 
 
-int FPS_GT511::SetTemplate(byte* tmplt, int fgpid, bool duplicateCheck) {
 
-    return false;
+int FPS_GT511::SetTemplate(byte* aTemplateBytes, int aFingerprintID, bool duplicateCheck) {
+    int ret = 0;
+    
+    
+    
+    //return oem_add_template(_com_port, aTemplateBytes, aFingerprintID);
+    
+    
+    // send command
+    if (UseSerialDebug)
+        printf("FPS - SetTemplate\n");
+    
+    Command_Packet* cp = new Command_Packet();
+    cp->Command = Command_Packet::Commands::SetTemplate;
+    cp->ParameterFromInt((duplicateCheck << 16) | aFingerprintID); // (Param LOWORD=ID, and if Parameter HIWORD is non-zero, fingerprint duplication check will not be performed )
+    byte * packetbytes = cp->GetPacketBytes();
+    SendCommand(packetbytes);
+    
+    // get response
+    Response_Packet* rp = GetResponse();
+    if(rp->ACK) {
+        // send data
+        SendData(aTemplateBytes, TEMPLATE_DATA_LEN);
+        
+        // get response
+        delete rp;
+        rp = GetResponse();
+        if(rp->ACK) {
+
+        }
+        else {
+            ret = rp->IntFromParameter();
+        }
+    }
+    else {
+        ret = rp->IntFromParameter();
+    }
+
+    delete cp;
+    delete rp;
+    return ret;
 }
 
 
@@ -772,12 +793,29 @@ int FPS_GT511::SetTemplate(byte* tmplt, int fgpid, bool duplicateCheck) {
 // Returns: True (device confirming download starting)
 	// Not implemented due to memory restrictions on the arduino
 	// may revisit this if I find a need for it
-//bool FPS_GT511::GetRawImage()
-//{
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-	//return false;
-//}
+int FPS_GT511::GetRawImage(byte * aBuffer)
+{
+    int ret = -1;
+    
+    if (UseSerialDebug)
+        printf("FPS - GetImage\n");
+    Command_Packet* cp = new Command_Packet();
+    cp->Command = Command_Packet::Commands::GetImage;
+    byte * packetbytes = cp->GetPacketBytes();
+    SendCommand(packetbytes);
+    
+    usleep(100*1000);
+    
+    Response_Packet* rp = GetResponse();
+    if(rp->ACK) {
+        ret = GetData(aBuffer, RAW_IMAGE_DATA_LEN);
+    }
+    else {
+        // NACK_INVALID_POS
+        // NACK IS NOT USED
+    }
+    return ret;
+}
 
 
 
@@ -792,7 +830,7 @@ int FPS_GT511::MakeTemplate(int fgpid)
     cp->ParameterFromInt(fgpid);
     
     byte* packetbytes = cp->GetPacketBytes();
-    SendCommand(packetbytes, 12);
+    SendCommand(packetbytes);
     
     
 #define data_len 498
@@ -830,18 +868,12 @@ int FPS_GT511::MakeTemplate(int fgpid)
 }
 
 
-// Gets a template from the fps (498 bytes) in 4 Data_Packets
-// Use StartDataDownload, and then GetNextDataPacket until done
-// Parameter: 0...(MAX_FGP_COUNT - 1) ID number
-// Returns: 
-//	0 - ACK Download starting
-//	1 - Invalid position
-//	2 - ID not used (no template to download
-	// Not implemented due to memory restrictions on the arduino
-	// may revisit this if I find a need for it
-int FPS_GT511::GetTemplate(int fgpid, byte * tmp)
+// Gets a template from the fps (498 bytes)
+// the input buffer must be allocated before call, and freed after use
+int FPS_GT511::GetTemplate(int fgpid, byte * aBuffer)
 {
-    int retcode = 0;
+    // envoyer 12 bytes pour la commande
+    int ret = -1;
     
     if (UseSerialDebug)
         printf("FPS - GetTemplate\n");
@@ -850,38 +882,40 @@ int FPS_GT511::GetTemplate(int fgpid, byte * tmp)
     cp->ParameterFromInt(fgpid);
 
     byte* packetbytes = cp->GetPacketBytes();
-    SendCommand(packetbytes, 12);
+    SendCommand(packetbytes);
     
     
-#define data_len 498
+    usleep(50 * 1000);
     
-    usleep(100 * 1000);
-    
+    // recevoir 12 bytes pour la réponse
     Response_Packet* rp = GetResponse();
     
     if(rp->ACK) {
-        struct {
-            byte startCode1;
-            byte startCode2;
-            word deviceID;
-            byte data[data_len];
-            word checksum;
-        } dp;
-        
-        byte * resp = GetResponse(sizeof(dp));
-        dp.startCode1 = resp[0]; // should be 0x5a
-        dp.startCode2 = resp[1]; // should be 0xa5
-        dp.deviceID = (resp[3] << 8) + resp[2];
-        
-        uint16_t chk = 0;
-        for(int i = 0; i < data_len; i++) {
-            dp.data[i] = resp[i + 4];
-            chk += resp[i + 4];
-        }
-        
-        dp.checksum = (resp[data_len + 5] << 8) + resp[data_len + 4];
     
-        memcpy(tmp, dp.data, data_len);
+        ret = GetData(aBuffer, TEMPLATE_DATA_LEN);
+
+//        // demander un flux de bytes de taille :
+//        // taille du header 0x5A 0xA5: 2 bytes +
+//        // taille du device ID: 2 bytes +
+//        // taille du template : 498 bytes +
+//        // taille du checksum : 2 bytes =>
+//        // total 504 bytes
+//        byte * resp = GetResponse(DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + TEMPLATE_DATA_LEN + DATA_CHECKSUM_LEN);
+//        uint8_t header1 = resp[0]; // should be 0x5a
+//        uint8_t header2 = resp[1]; // should be 0xa5
+//        uint16_t deviceID = *(uint16_t *)(&resp[DATA_HEADER_LEN]); // barbu ! device ID, should be always 0x01
+//        
+//        // recup du flux de data et calcul du checksum en même temps
+//        uint16_t checksum = header1 + header2 + deviceID; // should be 256
+//        for(int i = 0; i < TEMPLATE_DATA_LEN; i++) {
+//            tmp[i] = resp[i + DATA_HEADER_LEN + DATA_DEVICE_ID_LEN];
+//            checksum += tmp[i];
+//        }
+//
+//        // recuperation du checksum renvoyé par le device (2 derniers bytes) pour vérification
+//        uint16_t device_checksum = *(uint16_t *)(&resp[DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + TEMPLATE_DATA_LEN]);
+//
+//        retcode = (checksum != device_checksum) ? -1 : TEMPLATE_DATA_LEN;
     }
     else {
         // NACK_INVALID_POS
@@ -889,7 +923,7 @@ int FPS_GT511::GetTemplate(int fgpid, byte * tmp)
     }
 
     
-    return retcode;
+    return ret;
 }
 
 
@@ -947,6 +981,12 @@ void FPS_GT511::StartDataDownload()
 
 // #pragma region -= Private Methods =-
 // Sends the command to the software serial channel
+
+void FPS_GT511::SendCommand(byte cmd[]) {
+    SendCommand(cmd, COMMAND_PACKET_LEN);
+}
+
+
 void FPS_GT511::SendCommand(byte cmd[], int length)
 {
     pthread_mutex_lock(&_mutex);
@@ -958,64 +998,103 @@ void FPS_GT511::SendCommand(byte cmd[], int length)
     pthread_mutex_unlock(&_mutex);
     
     
-	if (UseSerialDebug)
-	{
-        //~ Serial.print("FPS - SEND: ");
+    if (UseSerialDebug) {
         printf("FPS - SEND: ");
-		SendToSerial(cmd, length);
-        //~ Serial.println();
+		DebugBytes(cmd, length);
         printf("\n");
 	}
-};
+}
+
+
+//build a data packet from given raw bytes and sends it to the chip.
+void FPS_GT511::SendData(uint8_t aRawBytes[], int aLength)
+{
+    
+    int data_packet_len = DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + aLength + DATA_CHECKSUM_LEN;
+    uint8_t * data_packet = new uint8_t[data_packet_len];
+    uint16_t checksum = DATA_START_CODE_1 + DATA_START_CODE_2 + DATA_DEVICE_ID_1 + DATA_DEVICE_ID_2;
+    
+    // build data packet :
+    // header
+    data_packet[0] = DATA_START_CODE_1;
+    data_packet[1] = DATA_START_CODE_2;
+    
+    // device ID
+    data_packet[2] = DATA_DEVICE_ID_1;
+    data_packet[3] = DATA_DEVICE_ID_2;
+
+    // data
+    for(int i = 0; i < aLength; i++) {
+        data_packet[DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + i] = aRawBytes[i];
+        checksum += aRawBytes[i];
+    }
+    
+    // checksum
+    *(uint16_t *)(data_packet + DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + aLength) = checksum;
+    
+    long long ms = millisecs();
+    pthread_mutex_lock(&_mutex);
+//    for(int i = 0; i < aLength; i++)
+//        RS232_SendByte(_com_port, data_packet[i]);
+
+    RS232_SendBuf(_com_port, data_packet, data_packet_len);
+    
+    pthread_mutex_unlock(&_mutex);
+    printf("SendData sent %d bytes in %d ms.\n", aLength, (int)(millisecs() - ms));
+    
+    if (UseSerialDebug) {
+        printf("FPS - SEND DATA: ");
+        DebugBytes(data_packet, data_packet_len);
+        printf("\n");
+    }
+    delete data_packet;
+}
 
 // Gets the response to the command from the software serial channel (and waits for it)
-Response_Packet* FPS_GT511::GetResponse() {
+Response_Packet * FPS_GT511::GetResponse() {
     int n;
-    byte* resp = new byte[RESPONSE_LEN];
-    byte* buffer = new byte[RESPONSE_LEN];
-
-    pthread_mutex_lock(&_mutex);
+    byte * resp = new byte[RESPONSE_LEN];
+    byte * buffer = new byte[RESPONSE_LEN];
+    Response_Packet * rp = NULL;
     
+    long long ms = millisecs();
+    
+    pthread_mutex_lock(&_mutex);
     int index = 0;
     while(index < RESPONSE_LEN) {
         n = RS232_PollComport(_com_port, buffer, RESPONSE_LEN);
-        if(n == RESPONSE_LEN && buffer[0] == Response_Packet::COMMAND_START_CODE_1) {
+        if(n <= RESPONSE_LEN && n > 0) {
             if(UseSerialDebug)
-                printf("FULL - RS232_PollComport read %d bytes.\n", n);
-            memcpy(resp, buffer, RESPONSE_LEN);
-            index += n;
-        }
-        else if(n < RESPONSE_LEN && n > 0) {
-            if(UseSerialDebug)
-                printf("PARTIAL - RS232_PollComport read %d bytes.\n", n);
+                printf("RS232_PollComport read %d bytes.\n", n);
             memcpy(resp + index, buffer, n);
             index += n;
         }
         else {
             usleep(10 * 1000);
+            if(millisecs() - ms > RESPONSE_TIMEOUT_MS) {
+                printf("RS232_PollComport TIMEOUT :(\n");
+                break;
+            }
         }
     }
-    
     pthread_mutex_unlock(&_mutex);
 
-
-	Response_Packet* rp = new Response_Packet(resp, UseSerialDebug);
-	delete resp;
-    delete buffer;
-	if (UseSerialDebug)	{
+    rp = new Response_Packet(resp, UseSerialDebug);
+    if (UseSerialDebug)	{
         printf("FPS - RECV: ");
-		SendToSerial(rp->RawBytes, 12);
+        DebugBytes(rp->RawBytes, 12);
         printf("\n\n");
-	}
+    }
+    
+    delete[] resp;
+    delete[] buffer;
+
 	return rp;
 }
 
 
 byte * FPS_GT511::GetResponse(int aExpectedByteCount) {
-
-    
     bool done = false;
-    
     int n;
     byte * resp = new byte[aExpectedByteCount];
     byte * buffer = new byte[aExpectedByteCount];
@@ -1049,127 +1128,69 @@ byte * FPS_GT511::GetResponse(int aExpectedByteCount) {
 }
 
 
+
+// get a data packet.
+int FPS_GT511::GetData(byte * aBuffer, int aExpectedByteCount) {
+    
+    // demander un flux de bytes de taille :
+    // taille du header 0x5A 0xA5: 2 bytes +
+    // taille du device ID: 2 bytes +
+    // taille des donnees : xxx bytes +
+    // taille du checksum : 2 bytes =>
+    // total xxx + 6 bytes
+    long long ms = millisecs();
+    int data_packet_len = DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + aExpectedByteCount + DATA_CHECKSUM_LEN;
+    byte * data_packet = GetResponse(data_packet_len);
+    
+    //byte * data = new byte[aExpectedByteCount];
+    uint8_t header1 = data_packet[0]; // should be 0x5a
+    uint8_t header2 = data_packet[1]; // should be 0xa5
+    uint16_t deviceID = *(uint16_t *)(&data_packet[DATA_HEADER_LEN]); // device ID, should be always 0x01
+    
+    if(header1 != DATA_START_CODE_1 || header2 != DATA_START_CODE_2) {
+        // bad header
+        printf("GetData failed : bad headers.\n");
+        return -1;
+    }
+    
+    // recup du flux de data et calcul du checksum en même temps
+    uint16_t checksum = header1 + header2 + deviceID; // should be 256
+    for(int i = 0; i < TEMPLATE_DATA_LEN; i++) {
+        aBuffer[i] = data_packet[i + DATA_HEADER_LEN + DATA_DEVICE_ID_LEN];
+        checksum += aBuffer[i];
+    }
+    
+    // recuperation du checksum renvoyé par le device (2 derniers bytes) pour vérification
+    uint16_t device_checksum = *(uint16_t *)(&data_packet[DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + TEMPLATE_DATA_LEN]);
+    
+    if(checksum != device_checksum ) {
+        printf("GetData failed : bad checksum.\n");
+        return -1;
+    }
+    
+    if (UseSerialDebug) {
+        printf("FPS - GET DATA: ");
+        DebugBytes(data_packet, data_packet_len);
+        printf("\n");
+    }
+
+    printf("GetData returned %d bytes in %d ms.\n", aExpectedByteCount, (int)(millisecs() - ms));
+    return 0;
+}
+
+
 // sends the bye aray to the serial debugger in our hex format EX: "00 AF FF 10 00 13"
-void FPS_GT511::SendToSerial(byte data[], int length)
-{
-  boolean first=true;
-  //~ Serial.print("\"");
-  printf("\"");
-  for(int i=0; i<length; i++)
-  {
-    if (first) 
-		first=false; 
-	else 
-		printf(" ");
-    serialPrintHex(data[i]);
-  }
-  printf("\"");
+void FPS_GT511::DebugBytes(byte data[], int length) {
+    for(int i = 0; i < length; i++)
+        printf("%.2X ", data[i]);
+    printf("\n");
 }
 
 // sends a byte to the serial debugger in the hex format we want EX "0F"
-void FPS_GT511::serialPrintHex(byte data)
-{
-  char tmp[16];
-  sprintf(tmp, "%.2X",data); 
-  printf("%s", tmp);
-}
-
-
-
-
-// ============================================================================
-// PORT OF WIN32 CODE
-// ============================================================================
-#define SB_OEM_PKT_SIZE			12
-#define SB_OEM_HEADER_SIZE		2
-#define SB_OEM_DEV_ID_SIZE		2
-#define SB_OEM_CHK_SUM_SIZE		2
-
-// Header Of Cmd and Ack Packets
-#define STX1				0x55	//Header1
-#define STX2				0xAA	//Header2
-
-// Header Of Data Packet
-#define STX3				0x5A	//Header1
-#define STX4				0xA5	//Header2
-
-#define PKT_ERR_START	-500
-#define PKT_COMM_ERR	PKT_ERR_START+1
-#define PKT_HDR_ERR		PKT_ERR_START+2
-#define PKT_DEV_ID_ERR	PKT_ERR_START+3
-#define PKT_CHK_SUM_ERR	PKT_ERR_START+4
-#define PKT_PARAM_ERR	PKT_ERR_START+5
-
-#define COMM_DEF_TIMEOUT 15000
-uint16_t gCommTimeOut = COMM_DEF_TIMEOUT;
-// Structure Of Cmd and Ack Packets
-typedef struct {
-    uint8_t 	Head1;
-    uint8_t 	Head2;
-    uint16_t	wDevId;
-    int		nParam;
-    uint16_t	wCmd;// or nAck
-    uint16_t 	wChkSum;
-} SB_OEM_PKT;
-
-uint16_t oemp_CalcChkSumOfDataPkt( uint8_t* pDataPkt, int nSize )
-{
-    int i;
-    uint16_t wChkSum = 0;
-    uint8_t* pBuf = (uint8_t*)pDataPkt;
-    
-    for(i=0;i<nSize;i++)
-        wChkSum += pBuf[i];
-    return wChkSum;
-}
-
-//int oemp_ReceiveData( uint16_t wDevID, uint8_t * pBuf, int nSize )
+//void FPS_GT511::serialPrintHex(byte data)
 //{
-//    uint16_t wReceivedChkSum, wChkSum;
-//    uint8_t Buf[4],*pCommBuf;
-//    int nReceivedBytes;
-//    
-//    if( pBuf == NULL )
-//        return PKT_PARAM_ERR;
-//    
-//    
-//    /*AVW modify*/
-//    pCommBuf = new uint8_t[nSize + SB_OEM_HEADER_SIZE + SB_OEM_DEV_ID_SIZE + SB_OEM_CHK_SUM_SIZE];
-//    
-//    
-//    
-//    nReceivedBytes = this->GetResponse( pCommBuf, nSize + SB_OEM_HEADER_SIZE + SB_OEM_DEV_ID_SIZE + SB_OEM_CHK_SUM_SIZE, gCommTimeOut );
-//    
-//    if( nReceivedBytes != nSize+SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE+SB_OEM_CHK_SUM_SIZE )
-//    {
-//        if(pCommBuf)
-//            delete pCommBuf;
-//        return PKT_COMM_ERR;
-//    }
-//    memcpy(Buf, pCommBuf, SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE);
-//    memcpy(pBuf, pCommBuf+SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE, nSize);
-//    wReceivedChkSum = *(uint8_t*)(pCommBuf+nSize+SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE);
-//    if(pCommBuf)
-//        delete pCommBuf;
-//    ////////////// pc end ///////////////
-//    
-//    if( ( Buf[0] != STX3 ) ||
-//       ( Buf[1] != STX4 ) )
-//    {
-//        return PKT_HDR_ERR;
-//    }
-//    
-//    if( *((uint16_t*)(&Buf[SB_OEM_HEADER_SIZE])) != wDevID )
-//        return PKT_DEV_ID_ERR;
-//    
-//    wChkSum = oemp_CalcChkSumOfDataPkt( Buf, SB_OEM_HEADER_SIZE+SB_OEM_DEV_ID_SIZE  );
-//    wChkSum += oemp_CalcChkSumOfDataPkt( pBuf, nSize );
-//    
-//    if( wChkSum != wReceivedChkSum )
-//        return PKT_CHK_SUM_ERR;
-//    /*AVW modify*/
-//    return 0;
+//  char tmp[16];
+//  sprintf(tmp, "%.2X",data); 
+//  printf("%s", tmp);
 //}
-
-// #pragma endregion
 

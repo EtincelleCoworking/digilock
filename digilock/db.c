@@ -112,9 +112,27 @@ static int exec(char * aSQL, bool aCommit, EDBAlert aAlertLevel) {
 	return rc;
 }
 
+
+int db_drop_tables() {
+    char sql[256];
+    int rc = -1;
+
+    sprintf(sql, "DROP TABLE %s;", TABLE_EVENT);
+    rc = exec(sql, false, EDBAlertNone);
+    sprintf(sql, "DROP TABLE %s;", TABLE_FGP);
+    rc = exec(sql, false, EDBAlertNone);
+    sprintf(sql, "DROP TABLE %s;", TABLE_USER);
+    rc = exec(sql, false, EDBAlertNone);
+    sprintf(sql, "DROP TABLE %s;", TABLE_USER_FGP);
+    rc = exec(sql, false, EDBAlertNone);
+ 
+    return rc;
+}
+
+
 int db_open() {
-   int rc = -1;
-   char sql[256];
+    int rc = -1;
+    char sql[256];
 
 	/* Open database */
 	rc = sqlite3_open(DATABASE_FILE, &sDB);
@@ -232,7 +250,7 @@ int db_get_user_id(char * aEmail) {
 
 
 int db_count_users() {
-    int rows;
+    int rows = -1;
     sqlite3_stmt * stmt;
     char sql[256];
 
@@ -279,7 +297,7 @@ int db_insert_user(char * aEmail) {
 }
 
 
-int db_insert_fingerprint(int aUserID, int aFingerprintID, uint16_t aChecksum, uint8_t * aData) {
+int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData) {
 	int rc;
 	char sql[256];
 
@@ -293,7 +311,7 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint16_t aChecksum, u
         TABLE_FGP_CHECKSUM,
 		aFingerprintID,
 		"", // TODO: aData,
-		aChecksum);
+		0);
 	rc = exec(sql, true, EDBAlertError);
 	
 	// link user <=> fgp

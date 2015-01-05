@@ -37,7 +37,7 @@
 #include "rs232.h"
 #include <pthread.h>
 
-static pthread_mutex_t gMutex = PTHREAD_MUTEX_INITIALIZER;
+//static pthread_mutex_t gMutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)  /* Linux & FreeBSD */
@@ -67,7 +67,7 @@ char comports[COMPORT_NUM][32]={"/dev/ttyS0","/dev/ttyS1","/dev/ttyS2","/dev/tty
 #ifdef __APPLE__
                         ,
                         "/dev/tty.usbserial",
-                        "/dev/tty.usbserial10"
+                        "/dev/tty.usbserial5"
 #endif
 };
 
