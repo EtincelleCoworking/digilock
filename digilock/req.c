@@ -29,7 +29,7 @@ char to_hex(char code) {
 /* Returns a url-encoded version of str */
 /* IMPORTANT: be sure to free() the returned string after use */
 char *url_encode(char *str) {
-  char *pstr = str, *buf = malloc(strlen(str) * 3 + 1), *pbuf = buf;
+  char *pstr = str, *buf = (char *)malloc(strlen(str) * 3 + 1), *pbuf = buf;
   while (*pstr) {
     if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~')
       *pbuf++ = *pstr;
@@ -46,7 +46,7 @@ char *url_encode(char *str) {
 /* Returns a url-decoded version of str */
 /* IMPORTANT: be sure to free() the returned string after use */
 char *url_decode(char *str) {
-  char *pstr = str, *buf = malloc(strlen(str) + 1), *pbuf = buf;
+  char *pstr = str, *buf = (char *)malloc(strlen(str) + 1), *pbuf = buf;
   while (*pstr) {
     if (*pstr == '%') {
       if (pstr[1] && pstr[2]) {
@@ -80,7 +80,7 @@ int req_cleanup() {
 int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResult) {
 
     CURL *curl;
-    CURLcode res = -1;
+    CURLcode res = (CURLcode)-1;
 
     /* In windows, this will init the winsock stuff */
     // curl_global_init(CURL_GLOBAL_ALL);
@@ -117,7 +117,7 @@ int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResul
 int req_user(int aUserID, char * aEmail) {
 
     CURL *curl;
-    CURLcode res = -1;
+    CURLcode res = (CURLcode)-1;
 
     curl = curl_easy_init();
     if(curl) {
@@ -145,7 +145,7 @@ int req_user(int aUserID, char * aEmail) {
 
 int req_fgp(int aUserID, int aFingerprintID, uint8_t * aData) {
     CURL *curl;
-    CURLcode res = -1;
+    CURLcode res = (CURLcode)-1;
 
     curl = curl_easy_init();
     if(curl) {
@@ -158,8 +158,8 @@ int req_fgp(int aUserID, int aFingerprintID, uint8_t * aData) {
         char str[256];
         
         // TODO: make base64 string w/ 
-        char * data64 = "TODO :[";
-        sprintf(str, "id=%d&image=%s", aFingerprintID, url_encode(data64));
+        const char * data64 = "TODO :[";
+        sprintf(str, "id=%d&image=%s", aFingerprintID, url_encode((char *)data64));
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
         res = curl_easy_perform(curl);

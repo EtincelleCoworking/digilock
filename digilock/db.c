@@ -71,7 +71,7 @@ int db_close() {
 //}
 
 
-int alert(char * aSubject, char * aMessage, EDBAlert aLevel) {
+int alert(const char * aSubject, char * aMessage, EDBAlert aLevel) {
 	// TODO:
 	return 0;
 }
