@@ -8,7 +8,11 @@
 
 #include "FPS_GT511Linux.h"
 #include "bitmap.h"
-#include <sys/time.h>
+#ifdef __APPLE__
+#  include <sys/time.h>
+#else
+#  include <time.h>
+#endif
 #include "win32code.h"
 
 long long millisecs() {

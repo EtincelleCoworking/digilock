@@ -1,16 +1,4 @@
-all: enroll idfinger blink hello
-
-hello: main.o FPS_GT511Linux.o rs232.o
-	g++ -DTARGET_HELLO main.cpp FPS_GT511Linux.cpp rs232.c -o hello
-
-enroll: main.o FPS_GT511Linux.o rs232.o
-	g++ -DTARGET_ENROLL main.cpp FPS_GT511Linux.cpp rs232.c -o enroll
-
-idfinger: main.o FPS_GT511Linux.o rs232.o
-	g++ -DTARGET_IDFINGER main.cpp FPS_GT511Linux.cpp rs232.c -o idfinger
-
-blink: main.o FPS_GT511Linux.o rs232.o
-	g++ -DTARGET_BLINK main.cpp FPS_GT511Linux.cpp rs232.c -o blink
-	
+all: main.o FPS_GT511Linux.o rs232.o db.o req.o scanner.o
+	g++ main.cpp FPS_GT511Linux.cpp rs232.c db.c req.c scanner.cpp -o digilock
 clean:
-	rm -rf *.o hello enroll idfinger blink
+	rm *.o digilock
