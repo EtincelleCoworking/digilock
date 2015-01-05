@@ -80,13 +80,13 @@ void Scanner::Dump() {
     int retcode = -1;
     const int max = _fps->GetEnrollCount();
     byte * buffer = new byte[TEMPLATE_DATA_LEN];
+    char name[32];
     for(int i = 0; i < max; i++) {
         memset(buffer, 0x0, TEMPLATE_DATA_LEN);
         retcode = _fps->GetTemplate(i, buffer);
         if(retcode != -1) {
-            std::string str = _name;
-            str += "-template-" + std::to_string(i) + ".bin";
-            FILE * f = fopen(str.c_str(), "w");
+            sprintf(name, "%s-template-%d.bin", _name, i);
+            FILE * f = fopen(name, "w");
             for(int j = 0; j < TEMPLATE_DATA_LEN; j++) {
                 fputc(buffer[j], f);
             }

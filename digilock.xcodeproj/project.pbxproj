@@ -17,7 +17,6 @@
 		6122FAFD1A515D92008C2D43 /* rs232.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF61A515D92008C2D43 /* rs232.c */; };
 		6122FAFE1A515D92008C2D43 /* smtp-mail.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF81A515D92008C2D43 /* smtp-mail.c */; };
 		6122FB011A5188F3008C2D43 /* bitmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAFF1A5188F3008C2D43 /* bitmap.c */; };
-		616915831A5AB5FC0001A3A7 /* win32code.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 616915811A5AB5FC0001A3A7 /* win32code.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -52,8 +51,6 @@
 		6122FAF81A515D92008C2D43 /* smtp-mail.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "smtp-mail.c"; path = "digilock/smtp-mail.c"; sourceTree = SOURCE_ROOT; };
 		6122FAFF1A5188F3008C2D43 /* bitmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = bitmap.c; path = digilock/bitmap.c; sourceTree = SOURCE_ROOT; };
 		6122FB031A519945008C2D43 /* bitmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bitmap.h; path = digilock/bitmap.h; sourceTree = SOURCE_ROOT; };
-		616915811A5AB5FC0001A3A7 /* win32code.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = win32code.cpp; path = digilock/win32code.cpp; sourceTree = SOURCE_ROOT; };
-		616915821A5AB5FC0001A3A7 /* win32code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = win32code.h; path = digilock/win32code.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,8 +87,6 @@
 		09A1A4261A4FF31000B55324 /* digilock */ = {
 			isa = PBXGroup;
 			children = (
-				616915811A5AB5FC0001A3A7 /* win32code.cpp */,
-				616915821A5AB5FC0001A3A7 /* win32code.h */,
 				6122FAEE1A515D92008C2D43 /* db.c */,
 				6122FAEF1A515D92008C2D43 /* db.h */,
 				6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */,
@@ -175,7 +170,6 @@
 				6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */,
 				6122FAFC1A515D92008C2D43 /* req.c in Sources */,
 				6122FAFE1A515D92008C2D43 /* smtp-mail.c in Sources */,
-				616915831A5AB5FC0001A3A7 /* win32code.cpp in Sources */,
 				093D6BD91A51FD090089C595 /* scanner.cpp in Sources */,
 				6122FAFB1A515D92008C2D43 /* main.cpp in Sources */,
 			);
