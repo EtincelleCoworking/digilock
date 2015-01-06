@@ -9,13 +9,13 @@
 #include "scanner.h"
 #ifndef __APPLE__
 //#  include "lcdpcf8574.h"
-#  define LCD_DEFAULT_LINE_0    (char *)"Etincelle      "
-#  define LCD_DEFAULT_LINE_1    (char *)"  Coworking    "
-#  define LCD_WELCOME_LINE_0    (char *)"Bienvenue      "
-#  define LCD_FORBIDDEN_LINE_0  (char *)"Acces non      "
-#  define LCD_FORBIDDEN_LINE_1  (char *)" autorise !    "
-
 #endif
+#define LCD_DEFAULT_LINE_0    (char *)"Etincelle      "
+#define LCD_DEFAULT_LINE_1    (char *)"  Coworking    "
+#define LCD_WELCOME_LINE_0    (char *)"Bienvenue      "
+#define LCD_FORBIDDEN_LINE_0  (char *)"Acces non      "
+#define LCD_FORBIDDEN_LINE_1  (char *)" autorise !    "
+
 
 
 #define FPS_BAUD        9600
@@ -152,6 +152,7 @@ static void * thread_shut_lcd(void * aScanner) {
 //    sLCD.lcd_puts(LCD_DEFAULT_LINE_1, 1, 0);
 //    printf("LCD thread stop\n");
 //    pthread_exit(NULL);
+    return NULL;
 }
 
 
