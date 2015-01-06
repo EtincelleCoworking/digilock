@@ -63,7 +63,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "203"
             endingLineNumber = "203"
-            landmarkName = "blink(void * aPort)"
+            landmarkName = "enroll(int aUserID)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
