@@ -157,8 +157,8 @@ static void * thread_shut_lcd(void * aScanner) {
 
 void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 
-    printf("LCD 0: %s\n", aLine0);
-    printf("LCD 1: %s\n", aLine1);
+    printf("LCD 0: %s|\n", aLine0);
+    printf("LCD 1: %s|\n", aLine1);
 
 
 //    sLCD.lcd_puts((char *)aLine0, 0, 0);
