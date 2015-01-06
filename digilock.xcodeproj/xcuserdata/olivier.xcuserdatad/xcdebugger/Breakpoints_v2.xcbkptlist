@@ -31,7 +31,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "863"
             endingLineNumber = "863"
-            landmarkName = "FPS_GT511::GetTemplate(int fgpid, byte * tmp)"
+            landmarkName = "FPS_GT511::MakeTemplate(int fgpid)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
