@@ -66,7 +66,6 @@ static Scanner * scan_entry = new Scanner(GT511_PORT_ENTRY, false, "ENTRY", EEve
 static Scanner * scan_exit = new Scanner(GT511_PORT_EXIT, false, "EXIT", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
 #define scan_enroll scan_exit
 
-
 #define BUFFER_LEN  256
 char sBuffer[256];
 
@@ -263,7 +262,6 @@ int main() {
 
 #ifndef __APPLE__
     wiringPiSetup();
-    pcf8574Setup(65, 0x27);
 #endif
     
     // =================================================================

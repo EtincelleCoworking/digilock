@@ -8,10 +8,18 @@
 
 #include "scanner.h"
 #include <string>
+#ifndef __APPLE__
+#  include "lcdpcf8574.h"
+#endif
+
 
 #define FPS_BAUD        9600
 static char sMode[] =   {'8', 'N', '1', 0};
 
+
+#ifndef __APPLE__
+lcdpcf8574 sLCD(0x27, 0, 0, 0); // TODO: beware of i2c address !!
+#endif
 
 static void * scan_thread(void * aScanner) {
     Scanner * scanner = (Scanner *)aScanner;
@@ -44,13 +52,21 @@ static void * scan_thread(void * aScanner) {
                 if(id < MAX_FGP_COUNT) {
                     // turn on green LED
                     printf("%s OK for fingerprint ID %d\n", scanner->GetName(), id);
+
                     scanner->ShowLED(ELEDTypeOK, true);
+                    scanner->ShowLCDMessage("Bienvenue       ",
+                                            "!               ");
+
                     db_insert_event(id, scanner->GetEvent(), true);
+
                 }
                 else {
                     // turn on red LED
                     printf("%s forbidden for unknown fingerprint ID\n", scanner->GetName());
                     scanner->ShowLED(ELEDTypeNOK, true);
+                    scanner->ShowLCDMessage("Acces non       ",
+                                            "autorise        ");
+
                     db_insert_event(-1, scanner->GetEvent(), false);
                 }
             }
@@ -120,6 +136,26 @@ EEventType Scanner::GetEvent() {
 
 bool Scanner::IsEnabled() {
     return _enabled;
+}
+
+
+static void * thread_shut_lcd(void * aScanner) {
+    // turn off all LEDs
+    usleep(2000 * 1000);
+
+    Scanner * scanner = (Scanner *)aScanner;
+    scanner->ShowLCDMessage("Etincelle       ",
+                            "Coworking       ");
+}
+
+
+void Scanner::ShowLCDMessage(char * aLine0, char * aLine1) {
+
+    sLCD.lcd_puts(aLine0, 0, 0);
+    sLCD.lcd_puts(aLine1, 1, 0);
+
+    pthread_t temp;
+    pthread_create(&temp, NULL, thread_shut_lcd, this);
 }
 
 
@@ -211,7 +247,11 @@ Scanner::Scanner(int aPort, bool aDebug, const char * aName, EEventType aEventTy
     _fps->UseSerialDebug = aDebug;
     _fps->Open();
 
+
+
 #ifndef __APPLE__
+    ShowLCDMessage("Etincelle       ",
+                   "Coworking       ");
     pinMode (_led_ok, OUTPUT);
     pinMode (_led_wait, OUTPUT);
     pinMode (_led_nok, OUTPUT);

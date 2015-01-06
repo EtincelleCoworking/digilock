@@ -39,3 +39,5 @@ HEADERS += \
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += libcurl
 unix: PKGCONFIG += sqlite3
+
+OTHER_FILES +=

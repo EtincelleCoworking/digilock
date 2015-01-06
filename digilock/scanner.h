@@ -16,7 +16,6 @@
 #include "FPS_GT511Linux.h"
 #ifndef __APPLE__
 #  include "wiringPi.h"
-#  include "pcf8574.h"
 #endif
 
 
@@ -43,6 +42,7 @@ public:
     EEventType      GetEvent();
     void            ShutdownLEDs();
     void            Dump();
+    void            ShowLCDMessage(char * aLine0, char * aLine1);
     
 private:
 //    bool            _available;
