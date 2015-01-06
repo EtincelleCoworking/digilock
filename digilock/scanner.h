@@ -42,7 +42,7 @@ public:
     EEventType      GetEvent();
     void            ShutdownLEDs();
     void            Dump();
-    void            ShowLCDMessage(char * aLine0, char * aLine1);
+    void            ShowLCDMessage(const char * aLine0, const char * aLine1);
     
 private:
 //    bool            _available;
@@ -54,7 +54,9 @@ private:
     FPS_GT511 *     _fps;
     const char *    _name;
     EEventType      _event;
-    pthread_t       _thread;
+    pthread_t       _scan_thread;
+    pthread_t       _led_thread;
+    pthread_t       _lcd_thread;
     
 };
 

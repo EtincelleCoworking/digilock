@@ -148,10 +148,12 @@ int db_open() {
 	sprintf(sql, 
 		 "CREATE TABLE IF NOT EXISTS %s ("  \
          "%s INTEGER PRIMARY KEY AUTOINCREMENT," \
+         "%s TEXT NOT NULL, " \
          "%s TEXT NOT NULL);",
          TABLE_USER,
          TABLE_USER_ID,
-         TABLE_USER_EMAIL);
+         TABLE_USER_EMAIL,
+         TABLE_USER_NICK);
 	rc |= exec(sql, false, EDBAlertFatal);
 	
 	sprintf(sql, 
@@ -249,6 +251,54 @@ int db_get_user_id(char * aEmail) {
 }
 
 
+const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
+    const char * name = NULL;
+    bool valid_params = true;
+    char sql[256];
+    sqlite3_stmt * stmt;
+
+
+    if(aUserID > 0) {
+        sprintf(sql,
+            "SELECT %s FROM %s WHERE %s = %d;",
+            aEmail ? TABLE_USER_EMAIL : TABLE_USER_NICK,
+            TABLE_USER,
+            TABLE_USER_ID,
+            aUserID);
+    }
+    else if(aFingerprintID > 0) {
+        sprintf(sql,
+            "SELECT %s FROM %s WHERE %s = (SELECT %s FROM %s WHERE %s = %d);",
+            aEmail ? TABLE_USER_EMAIL : TABLE_USER_NICK,
+            TABLE_USER,
+            TABLE_USER_ID,
+            TABLE_USER_FGP_UID,
+            TABLE_USER_FGP,
+            TABLE_USER_FGP_FID,
+            aFingerprintID);
+    }
+    else {
+        valid_params = false;
+    }
+
+    if(valid_params) {
+        sqlite3_mutex_enter(sqlite3_db_mutex(sDB));
+        sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
+        if (sqlite3_step(stmt) == SQLITE_ERROR) {
+            fprintf(stderr, "SQL error:  %s\n", sqlite3_errmsg(sDB));
+        } else {
+            int count = sqlite3_data_count(stmt);
+            if(count > 0) {
+                name = (const char *)sqlite3_column_text(stmt, 0);
+            }
+        }
+        sqlite3_finalize(stmt);
+        sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
+    }
+    return name;
+}
+
+
 int db_count_users() {
     int rows = -1;
     sqlite3_stmt * stmt;
@@ -273,16 +323,18 @@ int db_count_users() {
 }
 
 
-int db_insert_user(char * aEmail) {
+int db_insert_user(char * aEmail, char * aNick) {
 	int rc;
 	char sql[256];
 
 	sprintf(sql,
-        "INSERT INTO %s (%s) " \
-        "VALUES ('%s');",
+        "INSERT INTO %s (%s, %s) " \
+            "VALUES ('%s', '%s');",
         TABLE_USER,
         TABLE_USER_EMAIL,
-        aEmail);
+        TABLE_USER_NICK,
+        aEmail,
+        aNick);
 
 	rc = exec(sql, true, EDBAlertError);
     if(rc == SQLITE_OK) {

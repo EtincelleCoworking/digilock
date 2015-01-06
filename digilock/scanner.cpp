@@ -7,9 +7,14 @@
 //
 
 #include "scanner.h"
-#include <string>
 #ifndef __APPLE__
-#  include "lcdpcf8574.h"
+//#  include "lcdpcf8574.h"
+#  define LCD_DEFAULT_LINE_0    (char *)"Etincelle      "
+#  define LCD_DEFAULT_LINE_1    (char *)"  Coworking    "
+#  define LCD_WELCOME_LINE_0    (char *)"Bienvenue      "
+#  define LCD_FORBIDDEN_LINE_0  (char *)"Acces non      "
+#  define LCD_FORBIDDEN_LINE_1  (char *)" autorise !    "
+
 #endif
 
 
@@ -18,7 +23,7 @@ static char sMode[] =   {'8', 'N', '1', 0};
 
 
 #ifndef __APPLE__
-lcdpcf8574 sLCD(0x27, 0, 0, 0); // TODO: beware of i2c address !!
+//  lcdpcf8574 sLCD(0x27, 0, 0, 0); // TODO: beware of i2c address !!
 #endif
 
 static void * scan_thread(void * aScanner) {
@@ -53,9 +58,10 @@ static void * scan_thread(void * aScanner) {
                     // turn on green LED
                     printf("%s OK for fingerprint ID %d\n", scanner->GetName(), id);
 
+                    char lcdname[16] = "";
+                    sprintf(lcdname, "%.16s", db_get_user_name(-1, id, false));
                     scanner->ShowLED(ELEDTypeOK, true);
-                    scanner->ShowLCDMessage("Bienvenue       ",
-                                            "!               ");
+                    scanner->ShowLCDMessage(LCD_WELCOME_LINE_0, lcdname);
 
                     db_insert_event(id, scanner->GetEvent(), true);
 
@@ -64,8 +70,7 @@ static void * scan_thread(void * aScanner) {
                     // turn on red LED
                     printf("%s forbidden for unknown fingerprint ID\n", scanner->GetName());
                     scanner->ShowLED(ELEDTypeNOK, true);
-                    scanner->ShowLCDMessage("Acces non       ",
-                                            "autorise        ");
+                    scanner->ShowLCDMessage(LCD_FORBIDDEN_LINE_0, LCD_FORBIDDEN_LINE_1);
 
                     db_insert_event(-1, scanner->GetEvent(), false);
                 }
@@ -140,22 +145,26 @@ bool Scanner::IsEnabled() {
 
 
 static void * thread_shut_lcd(void * aScanner) {
-    // turn off all LEDs
     usleep(2000 * 1000);
-
-    Scanner * scanner = (Scanner *)aScanner;
-    scanner->ShowLCDMessage("Etincelle       ",
-                            "Coworking       ");
+    printf("shut lcd\n");
+//    Scanner * scanner = (Scanner *)aScanner;
+//    sLCD.lcd_puts(LCD_DEFAULT_LINE_0, 0, 0);
+//    sLCD.lcd_puts(LCD_DEFAULT_LINE_1, 1, 0);
+//    printf("LCD thread stop\n");
+//    pthread_exit(NULL);
 }
 
 
-void Scanner::ShowLCDMessage(char * aLine0, char * aLine1) {
+void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 
-    sLCD.lcd_puts(aLine0, 0, 0);
-    sLCD.lcd_puts(aLine1, 1, 0);
+    printf("LCD 0: %s\n", aLine0);
+    printf("LCD 1: %s\n", aLine1);
 
-    pthread_t temp;
-    pthread_create(&temp, NULL, thread_shut_lcd, this);
+
+//    sLCD.lcd_puts((char *)aLine0, 0, 0);
+//    sLCD.lcd_puts((char *)aLine1, 1, 0);
+
+//    pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
 }
 
 
@@ -165,6 +174,10 @@ static void * thread_shut_leds(void * aScanner) {
 
     Scanner * scanner = (Scanner *)aScanner;
     scanner->ShutdownLEDs();
+//    scanner->StopLCDThread();
+    printf("led thread stop\n");
+    pthread_exit(NULL);
+
 }
 
 
@@ -191,15 +204,14 @@ void Scanner::ShowLED(ELEDType aLEDType, bool aEnable) {
             digitalWrite(_led_ok, aEnable ? HIGH : LOW);
             if(aEnable) {
                 pthread_t temp;
-                pthread_create(&temp, NULL, thread_shut_leds, this);
+                pthread_create(&_led_thread, NULL, thread_shut_leds, this);
             }
             //printf("OK on\n");
             break;
         case ELEDTypeNOK:
             digitalWrite(_led_nok, aEnable ? HIGH : LOW);
             if(aEnable) {
-                pthread_t temp;
-                pthread_create(&temp, NULL, thread_shut_leds, this);
+                pthread_create(&_led_thread, NULL, thread_shut_leds, this);
             }
             //printf("NOK on\n");
             break;
@@ -210,10 +222,6 @@ void Scanner::ShowLED(ELEDType aLEDType, bool aEnable) {
         default:
             break;
     }
-
-
-
-
 #endif
 }
 
@@ -221,13 +229,13 @@ void Scanner::SetEnabled(bool aEnabled) {
     _enabled = aEnabled;
     if(_enabled == false) {
         // wait for thread to end
-        if(0 != pthread_join(_thread, NULL)) {
+        if(0 != pthread_join(_scan_thread, NULL)) {
             printf("pthread_join error");
         }
     }
     else {
         // loop
-        if(0 != pthread_create(&_thread, NULL, scan_thread, this)) {
+        if(0 != pthread_create(&_scan_thread, NULL, scan_thread, this)) {
             printf("pthread_create error");
         }
     }
@@ -247,11 +255,11 @@ Scanner::Scanner(int aPort, bool aDebug, const char * aName, EEventType aEventTy
     _fps->UseSerialDebug = aDebug;
     _fps->Open();
 
-
-
 #ifndef __APPLE__
-    ShowLCDMessage("Etincelle       ",
-                   "Coworking       ");
+//    sLCD.lcd_clear();
+//    sLCD.lcd_puts(LCD_DEFAULT_LINE_0, 0, 0);
+//    sLCD.lcd_puts(LCD_DEFAULT_LINE_1, 1, 0);
+    wiringPiSetup();
     pinMode (_led_ok, OUTPUT);
     pinMode (_led_wait, OUTPUT);
     pinMode (_led_nok, OUTPUT);

@@ -64,7 +64,7 @@ typedef enum EDBAlert {
 
 #define TABLE_USER			"User"
 #define TABLE_USER_ID		"id"
-//#define TABLE_USER_FNAME	"fname"
+#define TABLE_USER_NICK 	"nick"
 //#define TABLE_USER_LNAME	"lname"
 #define TABLE_USER_EMAIL    "email"
 
@@ -89,12 +89,14 @@ sqlite3 * db_get_database();
 int db_close();
 int db_open();
 int db_insert_event(int aFingerprintID, EEventType aType, bool aResult);
-int db_insert_user(char * aEmail);
+int db_insert_user(char * aEmail, char * aNick);
 int db_count_users();
 int db_get_user_id(char * aEmail);
 int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData);
 int db_delete_user_data(int aUserID, bool aDeleteUser);
 int db_drop_tables();
+const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail);
+
     
 #ifdef __cplusplus
 } /* extern "C" */

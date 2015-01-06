@@ -102,11 +102,17 @@ int enroll(int aUserID) {
     // ask for user ID
     printf("Welcome to user creation and enrollment.\n");
     if(aUserID == -1) {
+        char nick[16];
+        do {
+            printf("Please input a 16-character-max (nick)name: ");
+            getline();
+            strcpy(nick, sBuffer);
+        } while(strlen(nick) > 16);
         printf("Please input user email and press return: ");
         getline();
         aUserID = db_get_user_id(sBuffer);
         if(aUserID == -1) {
-            aUserID = db_insert_user(sBuffer);
+            aUserID = db_insert_user(sBuffer, nick);
             if(aUserID == -1) {
                 printf("ERROR: Could not create user !\n");
                 return -1;
@@ -259,10 +265,6 @@ int main() {
     // init sqlite, curl and devices
     db_open();
     req_init();
-
-#ifndef __APPLE__
-    wiringPiSetup();
-#endif
     
     // =================================================================
 //    scan_enroll->GetFPS()->UseSerialDebug = true;
@@ -371,12 +373,19 @@ int main() {
             
             }
             else if(strcasecmp(sBuffer, COMMAND_CREATE_USER) == 0) {
+                char nick[16];
+                do {
+                    printf("Enter a 16-character-max (nick)name: ");
+                    getline();
+                    strcpy(nick, sBuffer);
+                } while(strlen(nick) > 16);
                 printf("Enter user e-mail: ");
                 getline();
+
                 bool enroll_ok = true;
                 int _id = db_get_user_id(sBuffer);
                 if(_id == -1) {
-                    _id = db_insert_user(sBuffer);
+                    _id = db_insert_user(sBuffer, nick);
                     if(_id == -1) {
                         printf("User creation failed.\n");
                         enroll_ok = false;
