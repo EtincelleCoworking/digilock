@@ -22,8 +22,8 @@ SOURCES += main.cpp \
     FPS_GT511Linux.cpp \
     db.c \
     bitmap.c \
-    led.cpp \
-    scanner.cpp
+    scanner.cpp \
+    io.c
 
 HEADERS += \
     rs232.h \
@@ -32,8 +32,8 @@ HEADERS += \
     FPS_GT511Linux.h \
     db.h \
     bitmap.h \
-    led.h \
-    scanner.h
+    scanner.h \
+    io.h
 
 
 unix: CONFIG += link_pkgconfig
