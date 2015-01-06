@@ -10,6 +10,7 @@
 		093D6BD91A51FD090089C595 /* scanner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 093D6BD71A51FD090089C595 /* scanner.cpp */; };
 		09A1A4401A4FF43300B55324 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */; };
 		09A1A4421A4FF43900B55324 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A4411A4FF43900B55324 /* libcurl.dylib */; };
+		09D1BF061A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09D1BF041A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp */; };
 		6122FAF91A515D92008C2D43 /* db.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAEE1A515D92008C2D43 /* db.c */; };
 		6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */; };
 		6122FAFB1A515D92008C2D43 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF21A515D92008C2D43 /* main.cpp */; };
@@ -38,6 +39,8 @@
 		09A1A4241A4FF31000B55324 /* digilock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = digilock; sourceTree = BUILT_PRODUCTS_DIR; };
 		09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		09A1A4411A4FF43900B55324 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
+		09D1BF041A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LiquidCrystal_I2C.cpp; path = digilock/LiquidCrystal_I2C.cpp; sourceTree = SOURCE_ROOT; };
+		09D1BF051A5C2BC700A38B17 /* LiquidCrystal_I2C.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LiquidCrystal_I2C.h; path = digilock/LiquidCrystal_I2C.h; sourceTree = SOURCE_ROOT; };
 		6122FAEE1A515D92008C2D43 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = db.c; path = digilock/db.c; sourceTree = SOURCE_ROOT; };
 		6122FAEF1A515D92008C2D43 /* db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = db.h; path = digilock/db.h; sourceTree = SOURCE_ROOT; };
 		6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPS_GT511Linux.cpp; path = digilock/FPS_GT511Linux.cpp; sourceTree = SOURCE_ROOT; };
@@ -87,6 +90,8 @@
 		09A1A4261A4FF31000B55324 /* digilock */ = {
 			isa = PBXGroup;
 			children = (
+				09D1BF041A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp */,
+				09D1BF051A5C2BC700A38B17 /* LiquidCrystal_I2C.h */,
 				6122FAEE1A515D92008C2D43 /* db.c */,
 				6122FAEF1A515D92008C2D43 /* db.h */,
 				6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */,
@@ -166,6 +171,7 @@
 			files = (
 				6122FAFD1A515D92008C2D43 /* rs232.c in Sources */,
 				6122FB011A5188F3008C2D43 /* bitmap.c in Sources */,
+				09D1BF061A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp in Sources */,
 				6122FAF91A515D92008C2D43 /* db.c in Sources */,
 				6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */,
 				6122FAFC1A515D92008C2D43 /* req.c in Sources */,
@@ -260,6 +266,7 @@
 					"$(inherited)",
 				);
 				PRODUCT_NAME = digilock;
+				USER_HEADER_SEARCH_PATHS = "../wiringPi/**";
 			};
 			name = Debug;
 		};
@@ -267,6 +274,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				PRODUCT_NAME = digilock;
+				USER_HEADER_SEARCH_PATHS = "../wiringPi/**";
 			};
 			name = Release;
 		};
