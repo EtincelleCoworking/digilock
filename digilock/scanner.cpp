@@ -44,6 +44,9 @@ static void * scan_thread(void * aScanner) {
             fps->SetLED(led);
         }
         if(fps->IsPressFinger()) {
+            
+            long long ts = millisecs();
+            
             // finger pressed, continue if there was no finger before
             if(detect) {
                 // turn off detection, will be turned on when finger is released
@@ -60,17 +63,14 @@ static void * scan_thread(void * aScanner) {
 
                     scanner->ShowLED(ELEDTypeOK, true);
                     scanner->ShowLCDMessage(LCD_WELCOME_LINE_0, db_get_user_name(-1, id, false));
-
-                    db_insert_event(id, scanner->GetEvent(), true);
-
+                    db_insert_fingerprint_event(id, (int)(millisecs() - ts), scanner->GetEvent(), true);
                 }
                 else {
                     // turn on red LED
                     printf("%s forbidden for unknown fingerprint ID\n", scanner->GetName());
                     scanner->ShowLED(ELEDTypeNOK, true);
                     scanner->ShowLCDMessage(LCD_FORBIDDEN_LINE_0, LCD_FORBIDDEN_LINE_1);
-
-                    db_insert_event(-1, scanner->GetEvent(), false);
+                    db_insert_fingerprint_event(-1, 0, scanner->GetEvent(), false);
                 }
             }
         }
@@ -142,18 +142,6 @@ bool Scanner::IsEnabled() {
 }
 
 
-static void * thread_shut_lcd(void * aScanner) {
-    usleep(2000 * 1000);
-    printf("shut lcd\n");
-//    Scanner * scanner = (Scanner *)aScanner;
-//    sLCD.lcd_puts(LCD_DEFAULT_LINE_0, 0, 0);
-//    sLCD.lcd_puts(LCD_DEFAULT_LINE_1, 1, 0);
-//    printf("LCD thread stop\n");
-//    pthread_exit(NULL);
-    return NULL;
-}
-
-
 void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 
     printf("LCD 0: %s|\n", aLine0);
@@ -164,19 +152,6 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 //    sLCD.lcd_puts((char *)aLine1, 1, 0);
 
 //    pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
-}
-
-
-static void * thread_shut_leds(void * aScanner) {
-    // turn off all LEDs
-    usleep(2000 * 1000);
-
-    Scanner * scanner = (Scanner *)aScanner;
-    scanner->ShutdownLEDs();
-//    scanner->StopLCDThread();
-    printf("led thread stop\n");
-    pthread_exit(NULL);
-
 }
 
 

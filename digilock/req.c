@@ -15,6 +15,13 @@
 #include <inttypes.h>
 #include <string.h>
 
+long long millisecs() {
+    struct timeval te;
+    gettimeofday(&te, NULL); // get current time
+    long long milliseconds = te.tv_sec * 1000LL + te.tv_usec / 1000; // caculate milliseconds
+    return milliseconds;
+}
+
 /* Converts a hex character to its integer value */
 char from_hex(char ch) {
   return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
@@ -149,7 +156,7 @@ int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult) {
 }
 
 
-int req_user(int aUserID, char * aEmail) {
+int req_user(int aUserID, char * aNick, char * aEmail) {
 
     CURL *curl;
     CURLcode res = (CURLcode)-1;
@@ -163,7 +170,7 @@ int req_user(int aUserID, char * aEmail) {
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
         char str[256];
-      sprintf(str, "id=%d&email=%s", aUserID, url_encode(aEmail));
+      sprintf(str, "id=%d&nick=%s&email=%s", aUserID, url_encode(aNick), url_encode(aEmail));
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
       res = curl_easy_perform(curl);

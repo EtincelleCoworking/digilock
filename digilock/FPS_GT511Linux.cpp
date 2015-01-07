@@ -23,8 +23,6 @@ long long millisecs() {
 }
 
 
-// #pragma region -= Command_Packet Definitions =-
-
 // returns the 12 bytes of the generated command packet
 // remember to call delete on the returned array
 byte* Command_Packet::GetPacketBytes()

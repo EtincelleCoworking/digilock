@@ -24,9 +24,6 @@ typedef bool boolean;
 #define MAX_FGP_COUNT		2000 // for GT511-C5
 // #define MAX_FGP_COUNT		200 // for GT511-C3
 
-
-
-// #pragma region -= Command_Packet =-
 /*
 	Command_Packet represents the 12 byte command that we send to the finger print scanner
 */

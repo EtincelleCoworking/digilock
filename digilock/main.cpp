@@ -185,7 +185,7 @@ int enroll(int aUserID) {
                                 // upload template
                                 if(0 == fps_entry->SetTemplate(buf, enrollid, false)) {
                                     db_insert_fingerprint(aUserID, enrollid, buf);
-                                    db_insert_event(enrollid, EEventTypeEnroll, true);
+                                    db_insert_fingerprint_event(enrollid, 0, EEventTypeEnroll, true);
 
                                     // =============================
                                     // SUCCESS !!!
@@ -236,7 +236,7 @@ int enroll(int aUserID) {
                 printf(" done.\n");
             }
         }
-        db_insert_event(enrollid, EEventTypeEnroll, false);
+        db_insert_fingerprint_event(enrollid, 0, EEventTypeEnroll, false);
     }
     
     strcpy(sBuffer, "");

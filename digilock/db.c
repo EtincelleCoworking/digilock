@@ -27,6 +27,7 @@
 ***************************************************************************
 */
 #include "db.h"
+#include "req.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -40,12 +41,12 @@ sqlite3 * db_get_database() {
 }
 
 
-long long db_timestamp() {
-    struct timeval te;
-    gettimeofday(&te, NULL); // get current time
-    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
-    return milliseconds;
-}
+//long long db_timestamp() {
+//    struct timeval te;
+//    gettimeofday(&te, NULL); // get current time
+//    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
+//    return milliseconds;
+//}
 
 
 int db_close() {
@@ -190,32 +191,71 @@ int db_open() {
          TABLE_EVENT_TYPE,
          TABLE_EVENT_RESULT);
 	rc |= exec(sql, false, EDBAlertFatal);
-	
+
+    sprintf(sql,
+            "CREATE TABLE IF NOT EXISTS %s ("  \
+            "%s INTEGER PRIMARY KEY AUTOINCREMENT," \
+            "%s INTEGER NOT NULL," \
+            "%s INT," \
+            "%s INT);",
+            TABLE_INTERCOM,
+            TABLE_INTERCOM_ID,
+            TABLE_INTERCOM_TSTAMP,
+            TABLE_INTERCOM_PRESSES,
+            TABLE_INTERCOM_RESULT);
+    rc |= exec(sql, false, EDBAlertFatal);
+
 	return rc;
 }
 
 
-int db_insert_event(int aFingerprintID, EEventType aType, bool aResult) {
+int db_insert_intercom_event(int aNumPresses, bool aResult) {
+    int rc;
+    char sql[256];
+    
+    long long ts = millisecs();
+    sprintf(sql,
+            "INSERT INTO %s (%s, %s, %s) "  \
+            "VALUES (%lld, %d, %d);",
+            TABLE_INTERCOM,
+            TABLE_INTERCOM_TSTAMP,
+            TABLE_INTERCOM_PRESSES,
+            TABLE_INTERCOM_RESULT,
+            ts,
+            aNumPresses,
+            (int)aResult);
+    
+    rc = exec(sql, true, EDBAlertError);
+    if(rc == SQLITE_OK) {
+        req_log_intercom(ts, aNumPresses, aResult);
+    }
+    return rc;
+}
+
+
+int db_insert_fingerprint_event(int aFingerprintID, int aDetectionMS, EEventType aType, bool aResult) {
 	int rc;
 	char sql[256];
 
-    long long ts = db_timestamp();
+    long long ts = millisecs();
 	sprintf(sql,
-        "INSERT INTO %s (%s, %s, %s, %s) "  \
-        "VALUES (%lld, %d, %d, %d);",
+        "INSERT INTO %s (%s, %s, %s, %s, %s) "  \
+        "VALUES (%lld, %d, %d, %d, %d);",
         TABLE_EVENT,
         TABLE_EVENT_TSTAMP,
         TABLE_EVENT_FGP_ID,
+        TABLE_EVENT_DETECT,
         TABLE_EVENT_TYPE,
         TABLE_EVENT_RESULT,
         ts,
         aFingerprintID,
+        aDetectionMS,
         (int)aType,
         (int)aResult);
 
 	rc = exec(sql, true, EDBAlertError);
     if(rc == SQLITE_OK) {
-        req_log(ts, aType, aFingerprintID, aResult);
+        req_log_fingerprint(ts, aType, aFingerprintID, aDetectionMS, aResult);
     }
 	return rc;
 }
@@ -329,7 +369,7 @@ int db_insert_user(char * aEmail, char * aNick) {
 
 	sprintf(sql,
         "INSERT INTO %s (%s, %s) " \
-            "VALUES ('%s', '%s');",
+        "VALUES ('%s', '%s');",
         TABLE_USER,
         TABLE_USER_EMAIL,
         TABLE_USER_NICK,
@@ -339,7 +379,7 @@ int db_insert_user(char * aEmail, char * aNick) {
 	rc = exec(sql, true, EDBAlertError);
     if(rc == SQLITE_OK) {
         rc = db_get_user_id(aEmail);
-        req_user(rc, aEmail);
+        req_user(rc, aNick, aEmail);
     }
     else {
         rc = -1;
@@ -377,7 +417,7 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData) {
 		aUserID);
 	rc = exec(sql, true, EDBAlertError);
     if(rc == SQLITE_OK) {
-        req_fgp(aUserID, aFingerprintID, aData);
+        req_enroll(aUserID, aFingerprintID, aData);
     }
 
 	return rc;

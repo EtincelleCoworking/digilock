@@ -42,26 +42,28 @@ long long millis() {
 //#define PIN_INTERCOM_BUZZER         3
 //#define PIN_INTERCOM_DO_BUZZ        4
 
-void open_door() {
+void open_door(int aNumPresses) {
     printf("OPEN DOOR START\n");
     digitalWrite(EPinIntercomButtonOUT, HIGH);
     usleep(DO_BUTTON_DELAY_MS * 1000);
     digitalWrite(EPinIntercomButtonOUT, LOW);
     printf("OPEN DOOR STOP\n");
+    db_insert_intercom_event(aNumPresses, true);
 }
 
-void ring_buzzer() {
+void ring_buzzer(int aNumPresses) {
     printf("RING BUZZER START\n");
     digitalWrite(EPinIntercomBuzzerOUT, HIGH);
     usleep(DO_BUZZER_DELAY_MS * 1000);
     digitalWrite(EPinIntercomBuzzerOUT, LOW);
     printf("RING BUZZER STOP\n");
+    db_insert_intercom_event(aNumPresses, true);
 }
 
 
 void loop_open() {
     while (digitalRead(EPinIntercomBuzzerIN) == HIGH) {
-        open_door();
+        open_door(-1);
     }
 }
 
@@ -100,12 +102,12 @@ void loop_cheat() {
         
         if(presses == CHEAT_PRESS_NUM) {
             // pressed the right number of times during the given interval, open doors
-            open_door();
+            open_door(CHEAT_PRESS_NUM);
         }
 #endif
         else {
             // not press long enough, make buzz ring
-            ring_buzzer();
+            ring_buzzer(presses);
         }
     }
 }

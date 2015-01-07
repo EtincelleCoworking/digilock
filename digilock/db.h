@@ -31,14 +31,15 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#include "sqlite3.h"
+#include <stdbool.h>
+#include <stdint.h>
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "sqlite3.h"
-#include "req.h"
-#include <stdbool.h>
-#include <stdint.h>
 
 typedef enum EEventType {
 	EEventTypeEntry = 1,
@@ -65,7 +66,6 @@ typedef enum EDBAlert {
 #define TABLE_USER			"User"
 #define TABLE_USER_ID		"id"
 #define TABLE_USER_NICK 	"nick"
-//#define TABLE_USER_LNAME	"lname"
 #define TABLE_USER_EMAIL    "email"
 
 #define TABLE_FGP			"Fingerprint"
@@ -84,6 +84,12 @@ typedef enum EDBAlert {
 #define TABLE_EVENT_DETECT	"detection_ms"
 #define TABLE_EVENT_TYPE	"type"
 #define TABLE_EVENT_RESULT  "result"
+    
+#define TABLE_INTERCOM          "Intercom"
+#define TABLE_INTERCOM_ID       "id"
+#define TABLE_INTERCOM_TSTAMP   "timestamp"
+#define TABLE_INTERCOM_PRESSES  "presses"
+#define TABLE_INTERCOM_RESULT   "result"
 
 
 sqlite3 * db_get_database();

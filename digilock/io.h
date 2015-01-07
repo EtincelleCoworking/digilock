@@ -9,6 +9,8 @@
 #ifndef _IO_H_
 #define _IO_H_
 
+#include "db.h"
+#include "req.h"
 #include <unistd.h>
 #include <pthread.h>
 #include <inttypes.h>
