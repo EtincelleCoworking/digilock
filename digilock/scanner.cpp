@@ -142,6 +142,18 @@ bool Scanner::IsEnabled() {
 }
 
 
+static void * thread_shut_lcd(void * aScanner) {
+    usleep(2000 * 1000);
+    printf("shut lcd\n");
+//    Scanner * scanner = (Scanner *)aScanner;
+//    sLCD.lcd_puts(LCD_DEFAULT_LINE_0, 0, 0);
+//    sLCD.lcd_puts(LCD_DEFAULT_LINE_1, 1, 0);
+//    printf("LCD thread stop\n");
+//    pthread_exit(NULL);
+    return NULL;
+}
+
+
 void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 
     printf("LCD 0: %s|\n", aLine0);
@@ -152,6 +164,19 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 //    sLCD.lcd_puts((char *)aLine1, 1, 0);
 
 //    pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
+}
+
+
+static void * thread_shut_leds(void * aScanner) {
+    // turn off all LEDs
+    usleep(2000 * 1000);
+
+    Scanner * scanner = (Scanner *)aScanner;
+    scanner->ShutdownLEDs();
+//    scanner->StopLCDThread();
+    printf("led thread stop\n");
+    pthread_exit(NULL);
+
 }
 
 
