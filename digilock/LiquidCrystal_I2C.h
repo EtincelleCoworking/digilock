@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <inttypes.h>
 //#include <Print.h>
-#include "wiringPiI2C.h"
 
 // commands
 #define LCD_CLEARDISPLAY 0x01

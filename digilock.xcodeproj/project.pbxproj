@@ -11,6 +11,7 @@
 		09A1A4401A4FF43300B55324 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A43F1A4FF43300B55324 /* libsqlite3.dylib */; };
 		09A1A4421A4FF43900B55324 /* libcurl.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 09A1A4411A4FF43900B55324 /* libcurl.dylib */; };
 		09D1BF061A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09D1BF041A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp */; };
+		09D1BF8E1A5D327B00A38B17 /* io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09D1BF8C1A5D327B00A38B17 /* io.cpp */; };
 		6122FAF91A515D92008C2D43 /* db.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAEE1A515D92008C2D43 /* db.c */; };
 		6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */; };
 		6122FAFB1A515D92008C2D43 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF21A515D92008C2D43 /* main.cpp */; };
@@ -33,7 +34,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		093D6BC21A51BE630089C595 /* led.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = led.h; path = digilock/led.h; sourceTree = SOURCE_ROOT; };
 		093D6BD71A51FD090089C595 /* scanner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = scanner.cpp; path = digilock/scanner.cpp; sourceTree = SOURCE_ROOT; };
 		093D6BD81A51FD090089C595 /* scanner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = scanner.h; path = digilock/scanner.h; sourceTree = SOURCE_ROOT; };
 		09A1A4241A4FF31000B55324 /* digilock */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = digilock; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -41,6 +41,8 @@
 		09A1A4411A4FF43900B55324 /* libcurl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.dylib; path = usr/lib/libcurl.dylib; sourceTree = SDKROOT; };
 		09D1BF041A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LiquidCrystal_I2C.cpp; path = digilock/LiquidCrystal_I2C.cpp; sourceTree = SOURCE_ROOT; };
 		09D1BF051A5C2BC700A38B17 /* LiquidCrystal_I2C.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LiquidCrystal_I2C.h; path = digilock/LiquidCrystal_I2C.h; sourceTree = SOURCE_ROOT; };
+		09D1BF8C1A5D327B00A38B17 /* io.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = io.cpp; path = digilock/io.cpp; sourceTree = SOURCE_ROOT; };
+		09D1BF8D1A5D327B00A38B17 /* io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = io.h; path = digilock/io.h; sourceTree = SOURCE_ROOT; };
 		6122FAEE1A515D92008C2D43 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = db.c; path = digilock/db.c; sourceTree = SOURCE_ROOT; };
 		6122FAEF1A515D92008C2D43 /* db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = db.h; path = digilock/db.h; sourceTree = SOURCE_ROOT; };
 		6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPS_GT511Linux.cpp; path = digilock/FPS_GT511Linux.cpp; sourceTree = SOURCE_ROOT; };
@@ -90,6 +92,8 @@
 		09A1A4261A4FF31000B55324 /* digilock */ = {
 			isa = PBXGroup;
 			children = (
+				09D1BF8C1A5D327B00A38B17 /* io.cpp */,
+				09D1BF8D1A5D327B00A38B17 /* io.h */,
 				09D1BF041A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp */,
 				09D1BF051A5C2BC700A38B17 /* LiquidCrystal_I2C.h */,
 				6122FAEE1A515D92008C2D43 /* db.c */,
@@ -105,7 +109,6 @@
 				6122FAF81A515D92008C2D43 /* smtp-mail.c */,
 				6122FB031A519945008C2D43 /* bitmap.h */,
 				6122FAFF1A5188F3008C2D43 /* bitmap.c */,
-				093D6BC21A51BE630089C595 /* led.h */,
 				093D6BD71A51FD090089C595 /* scanner.cpp */,
 				093D6BD81A51FD090089C595 /* scanner.h */,
 			);
@@ -174,6 +177,7 @@
 				09D1BF061A5C2BC700A38B17 /* LiquidCrystal_I2C.cpp in Sources */,
 				6122FAF91A515D92008C2D43 /* db.c in Sources */,
 				6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */,
+				09D1BF8E1A5D327B00A38B17 /* io.cpp in Sources */,
 				6122FAFC1A515D92008C2D43 /* req.c in Sources */,
 				6122FAFE1A515D92008C2D43 /* smtp-mail.c in Sources */,
 				093D6BD91A51FD090089C595 /* scanner.cpp in Sources */,

@@ -2,6 +2,15 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <string.h>
+
+
+#ifdef __APPLE__
+#  define wiringPiI2CSetup(x)       printf("wiringPiI2CSetup %x", (x))
+#  define wiringPiI2CWrite(x, y)    printf("wiringPiI2CWrite %x / %x", (x), (y))
+#  define wiringPiI2CRead(x)        printf("wiringPiI2CRead %x", (x))
+#else
+#  include "wiringPiI2C.h"
+#endif
 //#include <Arduino.h>
 //#include <Wire.h>
 

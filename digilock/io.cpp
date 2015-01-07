@@ -15,18 +15,16 @@
 #  define LOW       0
 #  define INPUT     1
 #  define OUTPUT    0
-#  define digitalWrite(p, l)    printf("dwrite pin %d: %d", p, l)
-int digitalRead(int p) {
-    printf("dread pin %d", p);
-    return 0;
-}
+#  define digitalWrite(p, l)    printf("dwrite pin %d: %d\n", p, l)
+#  define digitalRead(p)        (0)
+
 long long millis() {
     struct timeval te;
     gettimeofday(&te, NULL); // get current time
     long long milliseconds = te.tv_sec * 1000LL + te.tv_usec / 1000; // caculate milliseconds
     return milliseconds;
 }
-#define pinMode(p, o)           printf("pin mode %d: %d", p, o)
+#define pinMode(p, o)           printf("pin mode %d: %d\n", p, o)
 #else
 #  include "wiringPi.h"
 #endif

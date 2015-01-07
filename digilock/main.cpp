@@ -33,6 +33,11 @@
 #  define GT511_PORT_ENROLL     ttyUSB0
 #endif
 
+#define INTERCOM_START_DATE     9
+#define INTERCOM_END_DATE       22
+
+
+
 #define COMMAND_PASSWORD        "sesame"
 #define COMMAND_YES             "yes"
 
@@ -43,10 +48,12 @@
 #define COMMAND_QUIT            "quit"
 #define COMMAND_ENROLL          "enroll"
 #define COMMAND_COUNT           "count"
-#define COMMAND_PAUSE_ENTRY     "pause entry"
-#define COMMAND_PAUSE_EXIT      "pause exit"
-#define COMMAND_RESUME_ENTRY    "resume entry"
-#define COMMAND_RESUME_EXIT     "resume exit"
+#define COMMAND_ENTRY_STOP      "entry stop"
+#define COMMAND_EXIT_STOP       "exit stop"
+#define COMMAND_INTERCOM_STOP   "intercom stop"
+#define COMMAND_ENTRY_START     "entry start"
+#define COMMAND_EXIT_START      "exit start"
+#define COMMAND_INTERCOM_START  "intercom start"
 #define COMMAND_DUMP_ENTRY      "dump entry"
 #define COMMAND_DUMP_EXIT       "dump exit"
 
@@ -65,6 +72,7 @@ static volatile bool            sBlinkLoop;
 static Scanner * scan_entry = new Scanner(GT511_PORT_ENTRY, false, "ENTRY", EEventTypeEntry, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK);
 static Scanner * scan_exit = new Scanner(GT511_PORT_EXIT, false, "EXIT", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
 #define scan_enroll scan_exit
+static Intercom * scan_intercom = new Intercom(INTERCOM_START_DATE, INTERCOM_END_DATE, false);
 
 #define BUFFER_LEN  256
 char sBuffer[256];
@@ -265,43 +273,9 @@ int main() {
     // init sqlite, curl and devices
     db_open();
     req_init();
-    
-    // =================================================================
-//    scan_enroll->GetFPS()->UseSerialDebug = true;
-//    scan_entry->GetFPS()->UseSerialDebug = true;
-//    scan_entry->GetFPS()->DeleteAll();
-//    scan_enroll->GetFPS()->DeleteAll();
-////
-//    db_drop_tables();
-//    db_close();
-//    db_open();
-//    enroll(-1);
-    
-    
-//    int count = scan_enroll->GetFPS()->GetEnrollCount();
-//    if(count > 0) {
-//        byte * buf = new byte[TEMPLATE_DATA_LEN];
-//
-//        if(0 == scan_enroll->GetFPS()->GetTemplate(count - 1, buf)) {
-//            FILE* f = fopen("/Users/olivier/template-2.dat", "w");
-//            for(int i = 0; i < TEMPLATE_DATA_LEN; i++) {
-//                fputc(buf[i], f);
-//            }
-//            fflush(f);
-//            fclose(f);
-//
-//            
-//            scan_entry->GetFPS()->SetTemplate(buf, count - 1, false);
-//            
-//            
-//            delete buf;
-//        }
-//    }
-    // =================================================================
-    
-    
     scan_entry->SetEnabled(true);
     scan_exit->SetEnabled(true);
+    scan_intercom->SetEnabled(true);
     
     pthread_t thr_blink;
     
@@ -316,21 +290,29 @@ int main() {
                 scan_exit->SetEnabled(true);
                 scan_entry->SetEnabled(true);
             }
-            else if(strcasecmp(sBuffer, COMMAND_PAUSE_ENTRY) == 0) {
+            else if(strcasecmp(sBuffer, COMMAND_ENTRY_STOP) == 0) {
                 scan_entry->SetEnabled(false);
-                printf("ENTRY scan thread paused !\n");
+                printf("ENTRY scan thread stopped !\n");
             }
-            else if(strcasecmp(sBuffer, COMMAND_RESUME_ENTRY) == 0) {
+            else if(strcasecmp(sBuffer, COMMAND_ENTRY_START) == 0) {
                 scan_entry->SetEnabled(true);
-                printf("ENTRY scan thread resumed !\n");
+                printf("ENTRY scan thread started !\n");
             }
-            else if(strcasecmp(sBuffer, COMMAND_PAUSE_EXIT) == 0) {
+            else if(strcasecmp(sBuffer, COMMAND_EXIT_STOP) == 0) {
                 scan_exit->SetEnabled(false);
-                printf("EXIT scan thread paused !\n");
+                printf("EXIT scan thread stopped !\n");
             }
-            else if(strcasecmp(sBuffer, COMMAND_RESUME_EXIT) == 0) {
+            else if(strcasecmp(sBuffer, COMMAND_EXIT_START) == 0) {
                 scan_exit->SetEnabled(true);
-                printf("EXIT scan thread resumed !\n");
+                printf("EXIT scan thread started !\n");
+            }
+            else if(strcasecmp(sBuffer, COMMAND_INTERCOM_STOP) == 0) {
+                scan_intercom->SetEnabled(false);
+                printf("INTERCOM scan thread stopped !\n");
+            }
+            else if(strcasecmp(sBuffer, COMMAND_INTERCOM_START) == 0) {
+                scan_intercom->SetEnabled(true);
+                printf("INTERCOM scan thread started !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_DELETE_FGP) == 0) {
                 printf("\nEnter user e-mail:");
@@ -444,7 +426,7 @@ int main() {
             else if(strcasecmp(sBuffer, COMMAND_DUMP_ENTRY) == 0) {
                 scan_entry->Dump();
             }
-            if(strcasecmp(sBuffer, COMMAND_DUMP_EXIT) == 0) {
+            else if(strcasecmp(sBuffer, COMMAND_DUMP_EXIT) == 0) {
                 scan_exit->Dump();
             }
             else if(strcasecmp(sBuffer, "") == 0)  {
@@ -455,6 +437,7 @@ int main() {
         }
         
         fflush(stdin);
+        usleep(1000);
     }
     while (strcasecmp(sBuffer, COMMAND_QUIT));
 

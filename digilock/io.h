@@ -9,19 +9,17 @@
 #ifndef _IO_H_
 #define _IO_H_
 
-
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-
+#include <unistd.h>
+#include <pthread.h>
+#include <inttypes.h>
+#include <stdio.h>
 
 typedef enum {
     EPinLockRelay = 3, // GPIO3 / header 15
     // EIOLockManual,    // NO: faire du pur analog, pour sécurité !!!
-    EPinIntercom1_I,
-    EPinIntercom1_0,
-    EPinIntercom2_I,
-    EPinIntercom2_0,
+    EPinIntercomBuzzerIN = 21,
+    EPinIntercomBuzzerOUT = 22,
+    EPinIntercomButtonOUT = 23,
     ELEDPinEntryOK = 7, // GPIO7 / header 7
     ELEDPinEntryNOK = 0, // GPIO0 / header 11
     ELEDPinEntryWait = 2, // GPIO2 / header 13
@@ -31,8 +29,24 @@ typedef enum {
 } EIOPin;
 
 
-//#ifdef __cplusplus
-//} /* extern "C" */
-//#endif
+
+void open_relay();
+
+
+class Intercom {
+public:
+    Intercom(int aStartTime, int aEndTime, bool aStartNow);
+    ~Intercom();
+    void        SetEnabled(bool aEnabled);
+    int         GetStartTime();
+    int         GetEndTime();
+    bool        IsEnabled();
+private:
+    pthread_t   _thread;
+    bool        _enabled;
+    int         _end_time;
+    int         _start_time;
+};
+
 
 #endif /* defined(_IO_H_) */
