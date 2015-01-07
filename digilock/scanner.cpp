@@ -58,10 +58,8 @@ static void * scan_thread(void * aScanner) {
                     // turn on green LED
                     printf("%s OK for fingerprint ID %d\n", scanner->GetName(), id);
 
-                    char lcdname[16] = "";
-                    sprintf(lcdname, "%.16s", db_get_user_name(-1, id, false));
                     scanner->ShowLED(ELEDTypeOK, true);
-                    scanner->ShowLCDMessage(LCD_WELCOME_LINE_0, lcdname);
+                    scanner->ShowLCDMessage(LCD_WELCOME_LINE_0, db_get_user_name(-1, id, false));
 
                     db_insert_event(id, scanner->GetEvent(), true);
 
@@ -161,7 +159,7 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
     printf("LCD 0: %s|\n", aLine0);
     printf("LCD 1: %s|\n", aLine1);
 
-
+//    sLCD.lcd_clear();
 //    sLCD.lcd_puts((char *)aLine0, 0, 0);
 //    sLCD.lcd_puts((char *)aLine1, 1, 0);
 

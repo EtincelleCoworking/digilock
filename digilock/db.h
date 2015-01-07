@@ -81,6 +81,7 @@ typedef enum EDBAlert {
 #define TABLE_EVENT_ID		"id"
 #define TABLE_EVENT_TSTAMP	"timestamp"
 #define TABLE_EVENT_FGP_ID	"fgp_id"
+#define TABLE_EVENT_DETECT	"detection_ms"
 #define TABLE_EVENT_TYPE	"type"
 #define TABLE_EVENT_RESULT  "result"
 
@@ -88,7 +89,8 @@ typedef enum EDBAlert {
 sqlite3 * db_get_database();
 int db_close();
 int db_open();
-int db_insert_event(int aFingerprintID, EEventType aType, bool aResult);
+int db_insert_fingerprint_event(int aFingerprintID, int aDetectionMS, EEventType aType, bool aResult);
+int db_insert_intercom_event(int aNumPresses, bool aResult);
 int db_insert_user(char * aEmail, char * aNick);
 int db_count_users();
 int db_get_user_id(char * aEmail);

@@ -43,24 +43,19 @@ long long millis() {
 //#define PIN_INTERCOM_DO_BUZZ        4
 
 void open_door() {
-    printf("OPEN DOOR\n");
+    printf("OPEN DOOR START\n");
     digitalWrite(EPinIntercomButtonOUT, HIGH);
     usleep(DO_BUTTON_DELAY_MS * 1000);
     digitalWrite(EPinIntercomButtonOUT, LOW);
+    printf("OPEN DOOR STOP\n");
 }
 
 void ring_buzzer() {
-    printf("RING BUZZER\n");
+    printf("RING BUZZER START\n");
     digitalWrite(EPinIntercomBuzzerOUT, HIGH);
     usleep(DO_BUZZER_DELAY_MS * 1000);
     digitalWrite(EPinIntercomBuzzerOUT, LOW);
-}
-
-void setup() {
-    pinMode(EPinIntercomButtonOUT, OUTPUT);
-    pinMode(EPinIntercomBuzzerOUT, OUTPUT);
-    pinMode(EPinIntercomBuzzerIN, INPUT);
-    printf("SETUP DONE\n");
+    printf("RING BUZZER STOP\n");
 }
 
 
@@ -133,10 +128,10 @@ void * loop_thread(void * aIntercom) {
 }
 
 
-Intercom::Intercom(int aStartTime, int aEndTime, bool aStartNow) {
-    _start_time = aStartTime;
-    _end_time = aEndTime;
-    if(aStartNow) SetEnabled(true);
+Intercom::Intercom() {
+    pinMode(EPinIntercomButtonOUT, OUTPUT);
+    pinMode(EPinIntercomBuzzerOUT, OUTPUT);
+    pinMode(EPinIntercomBuzzerIN, INPUT);
 }
 
 Intercom::~Intercom() {
@@ -155,7 +150,7 @@ bool Intercom::IsEnabled() {
     return _enabled;
 }
 
-void Intercom::SetEnabled(bool aEnabled) {
+void Intercom::SetEnabled(bool aEnabled, int aStartTime, int aEndTime) {
     _enabled = aEnabled;
     if(_enabled == false) {
         // wait for thread to end
@@ -165,12 +160,21 @@ void Intercom::SetEnabled(bool aEnabled) {
     }
     else {
         // loop
+        _start_time = aStartTime;
+        _end_time = aEndTime;
         if(0 != pthread_create(&_thread, NULL, loop_thread, this)) {
             printf("pthread_create error");
         }
     }
     
-    printf("INTERCOM: %s\n", _enabled ? "ON" : "OFF");
+    printf("INTERCOM: %s ", _enabled ? "ON" : "OFF");
+    if(aEnabled) {
+        if(aStartTime == aEndTime)
+            printf("CHEAT CODE ALWAYS ON\n");
+        else
+            printf("FREE OPEN START TIME %.2d:00 / END TIME %.2d:00\n", aStartTime, aEndTime);
+    }
+
 }
 
 

@@ -33,7 +33,7 @@
 #  define GT511_PORT_ENROLL     ttyUSB0
 #endif
 
-#define INTERCOM_START_DATE     9
+#define INTERCOM_START_DATE     12
 #define INTERCOM_END_DATE       22
 
 
@@ -72,7 +72,7 @@ static volatile bool            sBlinkLoop;
 static Scanner * scan_entry = new Scanner(GT511_PORT_ENTRY, false, "ENTRY", EEventTypeEntry, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK);
 static Scanner * scan_exit = new Scanner(GT511_PORT_EXIT, false, "EXIT", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
 #define scan_enroll scan_exit
-static Intercom * scan_intercom = new Intercom(INTERCOM_START_DATE, INTERCOM_END_DATE, false);
+static Intercom * scan_intercom = new Intercom();
 
 #define BUFFER_LEN  256
 char sBuffer[256];
@@ -275,7 +275,7 @@ int main() {
     req_init();
     scan_entry->SetEnabled(true);
     scan_exit->SetEnabled(true);
-    scan_intercom->SetEnabled(true);
+    scan_intercom->SetEnabled(true, INTERCOM_START_DATE, INTERCOM_END_DATE);
     
     pthread_t thr_blink;
     
@@ -307,11 +307,11 @@ int main() {
                 printf("EXIT scan thread started !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_INTERCOM_STOP) == 0) {
-                scan_intercom->SetEnabled(false);
+                scan_intercom->SetEnabled(false, 0, 0);
                 printf("INTERCOM scan thread stopped !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_INTERCOM_START) == 0) {
-                scan_intercom->SetEnabled(true);
+                scan_intercom->SetEnabled(true, INTERCOM_START_DATE, INTERCOM_END_DATE);
                 printf("INTERCOM scan thread started !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_DELETE_FGP) == 0) {
@@ -448,9 +448,12 @@ int main() {
     // stop scans
     scan_entry->SetEnabled(false);
     scan_exit->SetEnabled(false);
+    scan_intercom->SetEnabled(false, 0, 0);
+
 
     delete scan_entry;
     delete scan_exit;
+    delete scan_intercom;
     
     printf("Finished :)\n");
     return 0;

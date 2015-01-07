@@ -77,7 +77,7 @@ int req_cleanup() {
 }
 
 
-int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResult) {
+int req_log_fingerprint(long long aTimestamp, int aEventType, int aFingerprintID, int aDetectionMS, int aResult) {
 
     CURL *curl;
     CURLcode res = (CURLcode)-1;
@@ -92,19 +92,19 @@ int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResul
            just as well be a https:// URL if that is what should receive the
            data. */
         char url[256];
-        sprintf(url, "%s%s", SERVER_BASE_URL, "api/log");
+        sprintf(url, "%s%s", SERVER_BASE_URL, "api/log/fingerprint");
         curl_easy_setopt(curl, CURLOPT_URL, url);
 
         /* Now specify the POST data */
         char str[256];
-        sprintf(str, "when=%lld&kind=%d&fingerprint_id=%d&result=%d", aTimestamp, aEventType, aFingerprintID, aResult);
+        sprintf(str, "when=%lld&kind=%d&fingerprint_id=%d&detection_ms=%d&result=%d", aTimestamp, aEventType, aFingerprintID, aDetectionMS, aResult);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (str));
 
         /* Perform the request, res will get the return code */
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK)
-            fprintf(stderr, "req_log() failed: %s\n", curl_easy_strerror(res));
+            fprintf(stderr, "req_log_fingerprint() failed: %s\n", curl_easy_strerror(res));
 
         /* always cleanup */
         curl_easy_cleanup(curl);
@@ -112,6 +112,41 @@ int req_log(long long aTimestamp, int aEventType, int aFingerprintID, int aResul
     return (int)res;
 }
 
+
+int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult) {
+
+    CURL *curl;
+    CURLcode res = (CURLcode)-1;
+
+    /* In windows, this will init the winsock stuff */
+    // curl_global_init(CURL_GLOBAL_ALL);
+
+    /* get a curl handle */
+    curl = curl_easy_init();
+    if(curl) {
+          /* First set the URL that is about to receive our POST. This URL can
+           just as well be a https:// URL if that is what should receive the
+           data. */
+        char url[256];
+        sprintf(url, "%s%s", SERVER_BASE_URL, "api/log/intercom");
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+
+        /* Now specify the POST data */
+        char str[256];
+        sprintf(str, "when=%lld&numpresses=%d&result=%d", aTimestamp, aNumPresses, aResult);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (str));
+
+        /* Perform the request, res will get the return code */
+        res = curl_easy_perform(curl);
+        /* Check for errors */
+        if(res != CURLE_OK)
+            fprintf(stderr, "req_log_intercom() failed: %s\n", curl_easy_strerror(res));
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+    return (int)res;
+}
 
 
 int req_user(int aUserID, char * aEmail) {
@@ -143,7 +178,7 @@ int req_user(int aUserID, char * aEmail) {
 
 
 
-int req_fgp(int aUserID, int aFingerprintID, uint8_t * aData) {
+int req_enroll(int aUserID, int aFingerprintID, uint8_t * aData) {
     CURL *curl;
     CURLcode res = (CURLcode)-1;
 

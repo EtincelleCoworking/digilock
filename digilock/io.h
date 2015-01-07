@@ -35,9 +35,9 @@ void open_relay();
 
 class Intercom {
 public:
-    Intercom(int aStartTime, int aEndTime, bool aStartNow);
+    Intercom();
     ~Intercom();
-    void        SetEnabled(bool aEnabled);
+    void        SetEnabled(bool aEnabled, int aStartTime, int aEndTime);
     int         GetStartTime();
     int         GetEndTime();
     bool        IsEnabled();
