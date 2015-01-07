@@ -183,11 +183,13 @@ int db_open() {
          "%s INTEGER NOT NULL," \
          "%s INT," \
          "%s INT," \
+         "%s INT," \
          "%s INT);",
          TABLE_EVENT,
          TABLE_EVENT_ID,
          TABLE_EVENT_TSTAMP,
          TABLE_EVENT_FGP_ID,
+         TABLE_EVENT_DETECT,
          TABLE_EVENT_TYPE,
          TABLE_EVENT_RESULT);
 	rc |= exec(sql, false, EDBAlertFatal);

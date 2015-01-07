@@ -124,6 +124,7 @@ void * loop_thread(void * aIntercom) {
         else {
             loop_cheat();
         }
+        usleep(10 * 1000);
     }
     
     return NULL;
