@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <signal.h>
 
 #ifdef __APPLE__
 #  include <sys/malloc.h>
@@ -268,8 +269,31 @@ static void * blink(void * aPort) {
     return NULL;
 }
 
+void quit(int aIgnored) {
+    // close libcurl + sqlite
+    req_cleanup();
+    db_close();
+
+    // stop scans
+    scan_entry->SetEnabled(false);
+    scan_exit->SetEnabled(false);
+    scan_intercom->SetEnabled(false, 0, 0);
+
+
+    delete scan_entry;
+    delete scan_exit;
+    delete scan_intercom;
+
+    printf("Finished :)\n");
+
+    exit(0);
+}
+
 int main() {
     
+    // catch ctrl-c
+    signal(SIGINT, quit);
+
     // init sqlite, curl and devices
     db_open();
     req_init();
@@ -441,20 +465,6 @@ int main() {
     }
     while (strcasecmp(sBuffer, COMMAND_QUIT));
 
-    // close libcurl + sqlite
-    req_cleanup();
-    db_close();
-
-    // stop scans
-    scan_entry->SetEnabled(false);
-    scan_exit->SetEnabled(false);
-    scan_intercom->SetEnabled(false, 0, 0);
-
-
-    delete scan_entry;
-    delete scan_exit;
-    delete scan_intercom;
-    
-    printf("Finished :)\n");
+    quit(0);
     return 0;
 }

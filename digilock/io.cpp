@@ -89,7 +89,7 @@ void loop_cheat() {
         for (presses = 0; millis() - ms < CHEAT_PRESS_INTERVAL_MS; ) {
             while (digitalRead(EPinIntercomBuzzerIN) == HIGH) {
                 // wait till buzz is unpressed
-                usleep(10 * 1000);
+                usleep(10 * 1000); // debounce
                 pressed = true;
             }
             

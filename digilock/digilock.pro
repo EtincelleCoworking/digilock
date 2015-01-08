@@ -23,9 +23,7 @@ SOURCES += main.cpp \
     db.c \
     bitmap.c \
     scanner.cpp \
-    io.c \
-    io.cpp \
-    LiquidCrystal_I2C.cpp
+    io.cpp
 
 HEADERS += \
     rs232.h \
@@ -35,8 +33,7 @@ HEADERS += \
     db.h \
     bitmap.h \
     scanner.h \
-    io.h \
-    LiquidCrystal_I2C.h
+    io.h
 
 
 unix: CONFIG += link_pkgconfig

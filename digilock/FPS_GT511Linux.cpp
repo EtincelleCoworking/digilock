@@ -1045,7 +1045,7 @@ void FPS_GT511::SendData(uint8_t aRawBytes[], int aLength)
         DebugBytes(data_packet, data_packet_len);
         printf("\n");
     }
-    delete data_packet;
+    delete[] data_packet;
 }
 
 // Gets the response to the command from the software serial channel (and waits for it)

@@ -12,10 +12,12 @@
 #include <stdio.h>
 #include <pthread.h>
 #include "db.h"
+#include "io.h"
 #include "req.h"
 #include "FPS_GT511Linux.h"
 #ifndef __APPLE__
 #  include "wiringPi.h"
+#  include "lcd_i2c.h"
 #endif
 
 
@@ -42,6 +44,7 @@ public:
     EEventType      GetEvent();
     void            ShutdownLEDs();
     void            Dump();
+    void            Heartbeat();
     void            ShowLCDMessage(const char * aLine0, const char * aLine1);
     
 private:

@@ -31,7 +31,6 @@ typedef enum {
 } EIOPin;
 
 
-
 void open_relay();
 
 

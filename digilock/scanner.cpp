@@ -7,9 +7,8 @@
 //
 
 #include "scanner.h"
-#ifndef __APPLE__
-//#  include "lcdpcf8574.h"
-#endif
+
+
 #define LCD_DEFAULT_LINE_0    (char *)"Etincelle      "
 #define LCD_DEFAULT_LINE_1    (char *)"  Coworking    "
 #define LCD_WELCOME_LINE_0    (char *)"Bienvenue      "
@@ -23,7 +22,8 @@ static char sMode[] =   {'8', 'N', '1', 0};
 
 
 #ifndef __APPLE__
-//  lcdpcf8574 sLCD(0x27, 0, 0, 0); // TODO: beware of i2c address !!
+    lcd_i2c_t sLCD = {0};
+    static bool sLCDInit = false;
 #endif
 
 static void * scan_thread(void * aScanner) {
@@ -79,7 +79,9 @@ static void * scan_thread(void * aScanner) {
             scanner->ShowLED(ELEDTypeWait, false);
             detect = true;
         }
-        usleep(10 * 1000);
+        //usleep(10 * 1000);
+        scanner->Heartbeat();
+
     }
     
     // scan thread exit : turn off led
@@ -142,14 +144,19 @@ bool Scanner::IsEnabled() {
 }
 
 
+void lcd_default() {
+    lcd_i2c_clear(&sLCD);
+    lcd_i2c_gotoxy(&sLCD, 0, 0);
+    lcd_i2c_puts(&sLCD, LCD_DEFAULT_LINE_0);
+    lcd_i2c_gotoxy(&sLCD, 0, 1);
+    lcd_i2c_puts(&sLCD, LCD_DEFAULT_LINE_1);
+}
+
+
 static void * thread_shut_lcd(void * aScanner) {
     usleep(2000 * 1000);
     printf("shut lcd\n");
-//    Scanner * scanner = (Scanner *)aScanner;
-//    sLCD.lcd_puts(LCD_DEFAULT_LINE_0, 0, 0);
-//    sLCD.lcd_puts(LCD_DEFAULT_LINE_1, 1, 0);
-//    printf("LCD thread stop\n");
-//    pthread_exit(NULL);
+    lcd_default();
     return NULL;
 }
 
@@ -159,11 +166,13 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
     printf("LCD 0: %s|\n", aLine0);
     printf("LCD 1: %s|\n", aLine1);
 
-//    sLCD.lcd_clear();
-//    sLCD.lcd_puts((char *)aLine0, 0, 0);
-//    sLCD.lcd_puts((char *)aLine1, 1, 0);
+    lcd_i2c_clear(&sLCD);
+    lcd_i2c_gotoxy(&sLCD, 0, 0);
+    lcd_i2c_puts(&sLCD, aLine0);
+    lcd_i2c_gotoxy(&sLCD, 0, 1);
+    lcd_i2c_puts(&sLCD, aLine1);
 
-//    pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
+    pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
 }
 
 
@@ -189,6 +198,29 @@ void Scanner::ShutdownLEDs() {
     //printf("all leds off\n");
 #endif
 }
+
+#define HEARTBEAT_INTERVAL_MS   5000
+void Scanner::Heartbeat() {
+    static long long ts = millisecs();
+
+    if(millisecs() - ts > HEARTBEAT_INTERVAL_MS) {
+
+        digitalWrite(_led_ok, HIGH);
+        usleep(10 * 1000);
+        digitalWrite(_led_ok, LOW);
+        usleep(10 * 1000);
+        digitalWrite(_led_wait, HIGH);
+        usleep(10 * 1000);
+        digitalWrite(_led_wait, LOW);
+        usleep(10 * 1000);
+        digitalWrite(_led_nok, HIGH);
+        usleep(10 * 1000);
+        digitalWrite(_led_nok, LOW);
+
+        ts = millisecs();
+    }
+}
+
 
 void Scanner::ShowLED(ELEDType aLEDType, bool aEnable) {
 
@@ -255,9 +287,18 @@ Scanner::Scanner(int aPort, bool aDebug, const char * aName, EEventType aEventTy
     _fps->Open();
 
 #ifndef __APPLE__
-//    sLCD.lcd_clear();
-//    sLCD.lcd_puts(LCD_DEFAULT_LINE_0, 0, 0);
-//    sLCD.lcd_puts(LCD_DEFAULT_LINE_1, 1, 0);
+    if(sLCDInit == false) {
+        if(lcd_i2c_setup(&sLCD, LCD_I2C_PCF8574_ADDRESS_DEFAULT) == -1) {
+            // TODO error
+
+        }
+        else {
+            sLCDInit = true;
+            lcd_i2c_init(&sLCD);
+            LCD_I2C_BACKLIGHT_ON(&sLCD);
+            lcd_default();
+        }
+    }
     wiringPiSetup();
     pinMode (_led_ok, OUTPUT);
     pinMode (_led_wait, OUTPUT);
