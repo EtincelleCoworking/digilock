@@ -32,7 +32,8 @@ HEADERS += \
     db.h \
     bitmap.h \
     scanner.h \
-    io.h
+    io.h \
+    base64.h
 
 
 unix: CONFIG += link_pkgconfig

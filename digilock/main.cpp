@@ -197,7 +197,7 @@ int enroll(int aUserID) {
                                 
                                 // upload template
                                 if(0 == fps_entry->SetTemplate(buf, enrollid, false)) {
-                                    db_insert_fingerprint(aUserID, enrollid, buf);
+                                    db_insert_fingerprint(aUserID, enrollid, buf, TEMPLATE_DATA_LEN);
                                     db_insert_fingerprint_event(enrollid, 0, EEventTypeEnroll, true);
 
                                     // =============================
@@ -425,9 +425,11 @@ int main() {
                 }
             }
             else if(strcasecmp(sBuffer, COMMAND_EMPTY_FGP) == 0) {
+                scan_entry->GetFPS()->DeleteAll();
+                scan_exit->GetFPS()->DeleteAll();
             }
             else if(strcasecmp(sBuffer, COMMAND_SYNC) == 0) {
-                printf("Synchronize device data now ?\nThe scanning will be paused: ");
+                /*printf("Synchronize device data now ?\nThe scanning will be paused: ");
 
                 getline();
                 if(0 == strcasecmp(sBuffer, COMMAND_YES)) {
@@ -442,8 +444,7 @@ int main() {
                 }
                 else {
                     printf("Cancelled.");
-                }
-            
+                }*/
             }
             else if(strcasecmp(sBuffer, COMMAND_BLINK_START) == 0) {
                 sBlinkLoop = true;

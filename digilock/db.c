@@ -20,6 +20,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "db.h"
+#include "base64.h"
 #include "req.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -384,9 +385,18 @@ int db_insert_user(char * aEmail, char * aNick) {
 }
 
 
-int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData) {
+int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int aDataLength) {
 	int rc;
 	char sql[256];
+
+    int checksum = 0;
+    int i = 0;
+    for(i = 0; i < aDataLength; i++) {
+        checksum += aData[i];
+    }
+
+    int b64len = 0;
+    char * b64 = base64(aData, aDataLength, &b64len);
 
 	// insert fgp
 	sprintf(sql,
@@ -397,8 +407,8 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData) {
         TABLE_FGP_DATA,
         TABLE_FGP_CHECKSUM,
 		aFingerprintID,
-		"", // TODO: aData,
-		0);
+        b64,
+        checksum);
 	rc = exec(sql, true, EDBAlertError);
 	
 	// link user <=> fgp

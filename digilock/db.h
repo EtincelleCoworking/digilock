@@ -100,7 +100,7 @@ int db_insert_intercom_event(int aNumPresses, bool aResult);
 int db_insert_user(char * aEmail, char * aNick);
 int db_count_users();
 int db_get_user_id(char * aEmail);
-int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData);
+int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int aDataLength);
 int db_delete_user_data(int aUserID, bool aDeleteUser);
 int db_drop_tables();
 const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail);
