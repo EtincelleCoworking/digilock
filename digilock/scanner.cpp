@@ -2,22 +2,35 @@
 //  scanner.cpp
 //  digilock
 //
-//  Created by Olivier on 29/12/2014.
-//  Copyright (c) 2014 etincelle. All rights reserved.
+//  Created by Olivier Huguenot on 26/12/2014.
+//  Copyright (c) 2014 Etincelle Coworking. All rights reserved.
 //
-
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "scanner.h"
 
 
-#define LCD_DEFAULT_LINE_0    (char *)"Etincelle      "
-#define LCD_DEFAULT_LINE_1    (char *)"  Coworking    "
-#define LCD_WELCOME_LINE_0    (char *)"Bienvenue      "
-#define LCD_FORBIDDEN_LINE_0  (char *)"Acces non      "
-#define LCD_FORBIDDEN_LINE_1  (char *)" autorise !    "
+#define LCD_DEFAULT_LINE_0      (char *)"Etincelle      "
+#define LCD_DEFAULT_LINE_1      (char *)"  Coworking    "
+#define LCD_WELCOME_LINE_0      (char *)"Bienvenue      "
+#define LCD_FORBIDDEN_LINE_0    (char *)"Acces non      "
+#define LCD_FORBIDDEN_LINE_1    (char *)" autorise !    "
 
+#define HEARTBEAT_INTERVAL_MS   5000
+#define RELAY_INTERVAL_MS       3000
 
-
-#define FPS_BAUD        9600
+#define FPS_BAUD                9600
 static char sMode[] =   {'8', 'N', '1', 0};
 
 
@@ -25,6 +38,15 @@ static char sMode[] =   {'8', 'N', '1', 0};
     lcd_i2c_t sLCD = {0};
     static volatile bool sLCDInit = false;
 #endif
+
+
+static void * thread_open_relay(void * aIgnored) {
+    printf("OPEN RELAY START\n");
+    digitalWrite(EPinLockRelay, HIGH);
+    usleep(RELAY_INTERVAL_MS * 1000);
+    digitalWrite(EPinLockRelay, LOW);
+    printf("OPEN RELAY STOP\n");
+}
 
 static void * scan_thread(void * aScanner) {
     Scanner * scanner = (Scanner *)aScanner;
@@ -58,9 +80,10 @@ static void * scan_thread(void * aScanner) {
                 int id = fps->Identify1_N();
                 
                 if(id < MAX_FGP_COUNT) {
-                    // turn on green LED
+                    // turn on green LED + open door
                     printf("%s OK for fingerprint ID %d\n", scanner->GetName(), id);
-
+                    pthread_t thr;
+                    pthread_create(&thr, NULL, thread_open_relay, NULL);
                     scanner->ShowLED(ELEDTypeOK, true);
                     scanner->ShowLCDMessage(NULL, db_get_user_name(-1, id, false));
                     db_insert_fingerprint_event(id, (int)(millisecs() - ts), scanner->GetEvent(), true);
@@ -206,7 +229,6 @@ void Scanner::ShutdownLEDs() {
 #endif
 }
 
-#define HEARTBEAT_INTERVAL_MS   5000
 void Scanner::Heartbeat() {
     static long long ts = millisecs();
 

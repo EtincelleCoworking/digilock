@@ -46,9 +46,8 @@ public:
     void            Dump();
     void            Heartbeat();
     void            ShowLCDMessage(const char * aLine0, const char * aLine1);
-    
+
 private:
-//    bool            _available;
     bool            _debug;
     volatile bool   _enabled;
     int             _led_ok;

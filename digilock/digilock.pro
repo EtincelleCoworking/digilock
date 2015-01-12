@@ -16,7 +16,6 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    smtp-mail.c \
     rs232.c \
     req.c \
     FPS_GT511Linux.cpp \

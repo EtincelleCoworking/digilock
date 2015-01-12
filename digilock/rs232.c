@@ -29,6 +29,14 @@
 ***************************************************************************
 */
 
+//
+//  rs232.c
+//  digilock
+//
+//  Modified by Olivier Huguenot on 26/12/2014.
+//  Copyright (c) 2014 Etincelle Coworking. All rights reserved.
+//
+
 /* last revision: December 06, 2014 */
 
 /* For more info and how to use this library, visit: http://www.teuniz.net/RS-232/ */

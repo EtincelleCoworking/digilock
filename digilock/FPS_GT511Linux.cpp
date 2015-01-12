@@ -1,10 +1,19 @@
 /* 
-	FPS_GT511Linux.cpp v1.0 - Library for controlling the GT-511Cxx Finger Print Scanner (FPS)
+    FPS_GT511C3.cpp v1.0 - Library for controlling the GT-511Cxx Finger Print Scanner (FPS)
 	Created by Josh Hawley, July 23rd 2013
 	Licensed for non-commercial use, must include this license message
 	basically, Feel free to hack away at it, but just give me credit for my work =)
 	TLDR; Wil Wheaton's Law
 */
+
+//
+//  FPS_GT511Linux.cpp
+//  digilock
+//
+//  Modified by Olivier Huguenot on 26/12/2014.
+//  Copyright (c) 2014 Etincelle Coworking. All rights reserved.
+//
+
 
 #include "FPS_GT511Linux.h"
 #include "bitmap.h"
