@@ -410,7 +410,6 @@ int FPS_GT511::GetEnrollCount()
         return -1;
     
 	if (UseSerialDebug) 
-        //~ Serial.println("FPS - GetEnrolledCount");
         printf("FPS - GetEnrolledCount\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::GetEnrollCount;
@@ -630,7 +629,6 @@ bool FPS_GT511::DeleteID(int id)
 bool FPS_GT511::DeleteAll()
 {
 	if (UseSerialDebug) 
-        //~ Serial.println("FPS - DeleteAll");
         printf("FPS - DeleteAll\n");
 	Command_Packet* cp = new Command_Packet();
 	cp->Command = Command_Packet::Commands::DeleteAll;
@@ -750,7 +748,7 @@ int FPS_GT511::GetImage(byte * aBuffer)
 
 
 
-int FPS_GT511::SetTemplate(byte* aTemplateBytes, int aFingerprintID, bool duplicateCheck) {
+int FPS_GT511::SetTemplate(byte * aTemplateBytes, int aFingerprintID, bool duplicateCheck) {
     int ret = 0;
     
     //return oem_add_template(_com_port, aTemplateBytes, ((duplicateCheck << 16) & 0xFF) | aFingerprintID);

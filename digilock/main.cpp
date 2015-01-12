@@ -77,7 +77,7 @@
 #define COMMAND_DELETE_FGP      "delete fingerprint"
 #define COMMAND_DELETE_USER     "delete user"
 #define COMMAND_SYNC            "sync fingerprints"
-
+#define COMMAND_RELOAD          "reload fingerprints"
 
 
 static volatile bool            sBlinkLoop;
@@ -197,8 +197,19 @@ int enroll(int aUserID) {
                                 
                                 // upload template
                                 if(0 == fps_entry->SetTemplate(buf, enrollid, false)) {
+
+                                    printf("Template uploaded, updating database...\n");
+
+
                                     db_insert_fingerprint(aUserID, enrollid, buf, TEMPLATE_DATA_LEN);
+
+                                    printf("fingerprint inserted...\n");
+
+
                                     db_insert_fingerprint_event(enrollid, 0, EEventTypeEnroll, true);
+
+                                    printf("event inserted...\n");
+
 
                                     // =============================
                                     // SUCCESS !!!
@@ -425,6 +436,8 @@ int main() {
                 }
             }
             else if(strcasecmp(sBuffer, COMMAND_EMPTY_FGP) == 0) {
+                scan_entry->SetEnabled(false);
+                scan_exit->SetEnabled(false);
                 scan_entry->GetFPS()->DeleteAll();
                 scan_exit->GetFPS()->DeleteAll();
             }
@@ -445,6 +458,29 @@ int main() {
                 else {
                     printf("Cancelled.");
                 }*/
+            }
+            else if(strcasecmp(sBuffer, COMMAND_RELOAD) == 0) {
+                // delete all fingerprints and reload templates from database
+                scan_entry->SetEnabled(false);
+                scan_exit->SetEnabled(false);
+                scan_entry->GetFPS()->DeleteAll();
+                scan_exit->GetFPS()->DeleteAll();
+
+                int max_fgp = db_count_fingerprints();
+                for(int idx = 0; idx < max_fgp; idx++) {
+                    byte * fgp = db_get_template(idx);
+                    if(fgp != NULL) {
+                        scan_entry->GetFPS()->SetTemplate(fgp, idx, false);
+                        scan_exit->GetFPS()->SetTemplate(fgp, idx, false);
+                        free(fgp);
+                        printf("Reloaded fingerprint template ID: %d\n", idx);
+                    }
+                }
+
+                printf("Reload done.\n");
+
+                scan_entry->SetEnabled(true);
+                scan_exit->SetEnabled(true);
             }
             else if(strcasecmp(sBuffer, COMMAND_BLINK_START) == 0) {
                 sBlinkLoop = true;

@@ -197,7 +197,7 @@ int req_user(int aUserID, char * aNick, char * aEmail) {
 
 
 
-int req_enroll(int aUserID, int aFingerprintID, uint8_t * aData) {
+int req_enroll(int aUserID, int aFingerprintID, char * aData64) {
     CURL *curl;
     CURLcode res = (CURLcode)-1;
 
@@ -209,11 +209,16 @@ int req_enroll(int aUserID, int aFingerprintID, uint8_t * aData) {
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
-        char str[256];
+        printf(url);
+
+
+        char str[32 + (2 * strlen(aData64))];
         
         // TODO: make base64 string w/ 
-        const char * data64 = "TODO :[";
-        sprintf(str, "id=%d&image=%s", aFingerprintID, url_encode((char *)data64));
+        sprintf(str, "id=%d&image=%s", aFingerprintID, url_encode(aData64));
+
+        printf(str);
+
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
         res = curl_easy_perform(curl);

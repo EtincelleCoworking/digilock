@@ -24,7 +24,7 @@ int req_cleanup();
 int req_log_fingerprint(long long aTimestamp, int aEventType, int aFingerprintID, int aDetectionMS, int aResult);
 int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult);
 int req_user(int aUserID, char * aNick, char * aEmail);
-int req_enroll(int aUserID, int aFingerprintID, uint8_t * aData);
+int req_enroll(int aUserID, int aFingerprintID, char * aData);
     
 long long millisecs();
 

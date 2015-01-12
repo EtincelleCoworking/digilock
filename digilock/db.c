@@ -287,22 +287,73 @@ int db_get_user_id(char * aEmail) {
 }
 
 
+uint8_t * db_get_template(int aFingerprintID) {
+
+    const char * b64 = NULL;
+    char sql[256];
+    sqlite3_stmt * stmt;
+    uint8_t * fgp = NULL;
+    int checksum = 0;
+    bool ok = false;
+
+    sprintf(sql,
+        "SELECT %s, %s FROM %s WHERE %s = %d;",
+        TABLE_FGP_DATA,
+        TABLE_FGP_CHECKSUM,
+        TABLE_FGP,
+        TABLE_FGP_ID,
+        aFingerprintID);
+
+    sqlite3_mutex_enter(sqlite3_db_mutex(sDB));
+    sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
+    if (sqlite3_step(stmt) == SQLITE_ERROR) {
+        fprintf(stderr, "SQL error:  %s\n", sqlite3_errmsg(sDB));
+    } else {
+        int count = sqlite3_data_count(stmt);
+        if(count > 0) {
+            b64 = (const char *)sqlite3_column_text(stmt, 0);
+            checksum = sqlite3_column_int(stmt, 1);
+        }
+    }
+    sqlite3_finalize(stmt);
+    sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
+
+    if(b64 != NULL) {
+        int template_len = 0;
+        fgp = unbase64(b64, strlen(b64), &template_len);
+        if(fgp != NULL) {
+            int i;
+            int calc_checksum = 0;
+            for(i = 0; i < template_len; i++) {
+                calc_checksum += fgp[i];
+            }
+            if(checksum != calc_checksum) {
+                free(fgp);
+                fgp = NULL;
+            }
+        }
+    }
+
+    return fgp;
+}
+
 const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
     const char * name = NULL;
     bool valid_params = true;
     char sql[256];
     sqlite3_stmt * stmt;
 
-
-    if(aUserID > 0) {
+    if(aUserID >= 0) {
         sprintf(sql,
             "SELECT %s FROM %s WHERE %s = %d;",
             aEmail ? TABLE_USER_EMAIL : TABLE_USER_NICK,
             TABLE_USER,
             TABLE_USER_ID,
             aUserID);
+
+        printf("%s\n", sql);
     }
-    else if(aFingerprintID > 0) {
+    else if(aFingerprintID >= 0) {
         sprintf(sql,
             "SELECT %s FROM %s WHERE %s = (SELECT %s FROM %s WHERE %s = %d);",
             aEmail ? TABLE_USER_EMAIL : TABLE_USER_NICK,
@@ -312,6 +363,8 @@ const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
             TABLE_USER_FGP,
             TABLE_USER_FGP_FID,
             aFingerprintID);
+
+        printf("%s\n", sql);
     }
     else {
         valid_params = false;
@@ -326,6 +379,9 @@ const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
             int count = sqlite3_data_count(stmt);
             if(count > 0) {
                 name = (const char *)sqlite3_column_text(stmt, 0);
+
+                printf("%s\n", name);
+
             }
         }
         sqlite3_finalize(stmt);
@@ -335,7 +391,7 @@ const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
 }
 
 
-int db_count_users() {
+int db_count(char * aTableName) {
     int rows = -1;
     sqlite3_stmt * stmt;
     char sql[256];
@@ -344,7 +400,7 @@ int db_count_users() {
 
     sprintf(sql,
         "SELECT COUNT(*) FROM %s;",
-        TABLE_USER);
+        aTableName);
     sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
     if (sqlite3_step(stmt) == SQLITE_ERROR) {
         fprintf(stderr, "SQL error:  %s\n", sqlite3_errmsg(sDB));
@@ -352,10 +408,18 @@ int db_count_users() {
         rows = sqlite3_column_int(stmt, 0);
     }
     sqlite3_finalize(stmt);
-    
     sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
-
     return rows;
+}
+
+
+int db_count_fingerprints() {
+    return db_count((char *)TABLE_FGP);
+}
+
+
+int db_count_users() {
+    return db_count((char *)TABLE_USER);
 }
 
 
@@ -396,7 +460,7 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
     }
 
     int b64len = 0;
-    char * b64 = base64(aData, aDataLength, &b64len);
+    //char * b64 = base64(aData, aDataLength, &b64len);
 
 	// insert fgp
 	sprintf(sql,
@@ -410,8 +474,8 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
         b64,
         checksum);
 	rc = exec(sql, true, EDBAlertError);
-	
-	// link user <=> fgp
+
+    // link user <=> fgp
 	sprintf(sql,
 		"INSERT INTO %s (%s, %s) " \
         "VALUES (%d, %d);",
@@ -421,10 +485,14 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
 		aFingerprintID,
 		aUserID);
 	rc = exec(sql, true, EDBAlertError);
-    if(rc == SQLITE_OK) {
-        req_enroll(aUserID, aFingerprintID, aData);
-    }
 
+    if(rc == SQLITE_OK) {
+        req_enroll(aUserID, aFingerprintID, (char*) "");
+    }
+    printf("free...");
+
+    //free(b64);
+    printf("free done\n");
 	return rc;
 }
 
