@@ -20,13 +20,105 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "db.h"
-#include "base64.h"
 #include "req.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <string.h>
+
+
+static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+                                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+                                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                                'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+                                'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+                                'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+                                'w', 'x', 'y', 'z', '0', '1', '2', '3',
+                                '4', '5', '6', '7', '8', '9', '+', '/'};
+static char *decoding_table = NULL;
+static int mod_table[] = {0, 2, 1};
+
+void build_decoding_table() {
+
+    decoding_table = (char*)malloc(256);
+int i;
+    for (i = 0; i < 64; i++)
+        decoding_table[(unsigned char) encoding_table[i]] = i;
+}
+
+
+void base64_cleanup() {
+    free(decoding_table);
+}
+
+char *base64_encode(const unsigned char *data,
+                    size_t input_length,
+                    size_t *output_length) {
+
+    *output_length = 4 * ((input_length + 2) / 3);
+
+    char *encoded_data = (char*)malloc(*output_length);
+    if (encoded_data == NULL) return NULL;
+int i,j;
+    for (i = 0, j = 0; i < input_length;) {
+
+        uint32_t octet_a = i < input_length ? (unsigned char)data[i++] : 0;
+        uint32_t octet_b = i < input_length ? (unsigned char)data[i++] : 0;
+        uint32_t octet_c = i < input_length ? (unsigned char)data[i++] : 0;
+
+        uint32_t triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+
+        encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
+        encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
+    }
+
+    for (i = 0; i < mod_table[input_length % 3]; i++)
+        encoded_data[*output_length - 1 - i] = '=';
+
+    return encoded_data;
+}
+
+
+unsigned char *base64_decode(const char *data,
+                             size_t input_length,
+                             size_t *output_length) {
+
+    if (decoding_table == NULL) build_decoding_table();
+
+    if (input_length % 4 != 0) return NULL;
+
+    *output_length = input_length / 4 * 3;
+    if (data[input_length - 1] == '=') (*output_length)--;
+    if (data[input_length - 2] == '=') (*output_length)--;
+
+    unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
+    if (decoded_data == NULL) return NULL;
+int i,j;
+    for (i = 0, j = 0; i < input_length;) {
+
+        uint32_t sextet_a = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+        uint32_t sextet_b = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+        uint32_t sextet_c = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+        uint32_t sextet_d = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
+
+        uint32_t triple = (sextet_a << 3 * 6)
+        + (sextet_b << 2 * 6)
+        + (sextet_c << 1 * 6)
+        + (sextet_d << 0 * 6);
+
+        if (j < *output_length) decoded_data[j++] = (triple >> 2 * 8) & 0xFF;
+        if (j < *output_length) decoded_data[j++] = (triple >> 1 * 8) & 0xFF;
+        if (j < *output_length) decoded_data[j++] = (triple >> 0 * 8) & 0xFF;
+    }
+
+    return decoded_data;
+}
+
+
+
 
 static sqlite3 * sDB;
 
@@ -319,8 +411,8 @@ uint8_t * db_get_template(int aFingerprintID) {
     sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
 
     if(b64 != NULL) {
-        int template_len = 0;
-        fgp = unbase64(b64, strlen(b64), &template_len);
+        size_t template_len = 0;
+        fgp = base64_decode(b64, strlen(b64), &template_len);
         if(fgp != NULL) {
             int i;
             int calc_checksum = 0;
@@ -459,8 +551,10 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
         checksum += aData[i];
     }
 
-    int b64len = 0;
-    //char * b64 = base64(aData, aDataLength, &b64len);
+    size_t b64len = 0;
+    char * b64 = "";//base64_encode(aData, aDataLength + 1, &b64len);
+    printf(b64);
+    printf("\nlen=%d\n", b64len);
 
 	// insert fgp
 	sprintf(sql,
@@ -475,6 +569,8 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
         checksum);
 	rc = exec(sql, true, EDBAlertError);
 
+    printf("insert fgp w/ %d\n", rc);
+
     // link user <=> fgp
 	sprintf(sql,
 		"INSERT INTO %s (%s, %s) " \
@@ -486,13 +582,16 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
 		aUserID);
 	rc = exec(sql, true, EDBAlertError);
 
-    if(rc == SQLITE_OK) {
-        req_enroll(aUserID, aFingerprintID, (char*) "");
-    }
-    printf("free...");
+    printf("link fgp w/ %d\n", rc);
 
+    if(rc == SQLITE_OK) {
+        req_enroll(aUserID, aFingerprintID, b64);
+
+        printf("req done\n");
+    }
+    //printf("free...");
     //free(b64);
-    printf("free done\n");
+    //printf("free done\n");
 	return rc;
 }
 

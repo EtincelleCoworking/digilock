@@ -79,7 +79,7 @@ char* base64( const void* binaryData, int len, int *flen )
   
   int modulusLen = len % 3 ;
   int pad = ((modulusLen&1)<<1) + ((modulusLen&2)>>1) ; // 2 gives 1 and 1 gives 2, but 0 gives 0.
-  
+
   *flen = 4*(len + pad)/3 ;
   res = (char*) malloc( *flen + 1 ) ; // and one for the null
   if( !res )
@@ -99,7 +99,7 @@ char* base64( const void* binaryData, int len, int *flen )
     res[rc++]  = b64[ ((0x0f&BYTE1)<<2) + (BYTE2>>6) ] ;
     res[rc++]  = b64[ 0x3f&BYTE2 ] ;
   }
-  
+
   if( pad==2 )
   {
     res[rc++] = b64[ bin[byteNo] >> 2 ] ;

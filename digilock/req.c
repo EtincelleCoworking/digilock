@@ -211,7 +211,6 @@ int req_enroll(int aUserID, int aFingerprintID, char * aData64) {
 
         printf(url);
 
-
         char str[32 + (2 * strlen(aData64))];
         
         // TODO: make base64 string w/ 
