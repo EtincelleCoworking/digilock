@@ -32,7 +32,7 @@ class Scanner
 {
     
 public:
-    Scanner(int aPort, bool aDebug, const char * aName, EEventType aEventType, int aLedOK, int aLedWait, int aLedNOK);
+    Scanner(int aPort, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aLedOK, int aLedWait, int aLedNOK);
     ~Scanner();
 
     
@@ -56,6 +56,7 @@ private:
     int             _led_wait;
     FPS_GT511 *     _fps;
     const char *    _name;
+    const char *    _welcome;
     EEventType      _event;
     pthread_t       _scan_thread;
     pthread_t       _led_thread;

@@ -23,7 +23,7 @@ static char sMode[] =   {'8', 'N', '1', 0};
 
 #ifndef __APPLE__
     lcd_i2c_t sLCD = {0};
-    static bool sLCDInit = false;
+    static volatile bool sLCDInit = false;
 #endif
 
 static void * scan_thread(void * aScanner) {
@@ -62,7 +62,7 @@ static void * scan_thread(void * aScanner) {
                     printf("%s OK for fingerprint ID %d\n", scanner->GetName(), id);
 
                     scanner->ShowLED(ELEDTypeOK, true);
-                    scanner->ShowLCDMessage(LCD_WELCOME_LINE_0, db_get_user_name(-1, id, false));
+                    scanner->ShowLCDMessage(NULL, db_get_user_name(-1, id, false));
                     db_insert_fingerprint_event(id, (int)(millisecs() - ts), scanner->GetEvent(), true);
                 }
                 else {
@@ -168,10 +168,17 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 
     lcd_i2c_clear(&sLCD);
     lcd_i2c_gotoxy(&sLCD, 0, 0);
-    lcd_i2c_puts(&sLCD, aLine0);
-    lcd_i2c_gotoxy(&sLCD, 0, 1);
-    lcd_i2c_puts(&sLCD, aLine1);
 
+    if(aLine0) {
+        lcd_i2c_puts(&sLCD, aLine0);
+    }
+    else {
+        lcd_i2c_puts(&sLCD, _welcome);
+    }
+    lcd_i2c_gotoxy(&sLCD, 0, 1);
+    if(aLine1) {
+        lcd_i2c_puts(&sLCD, aLine1);
+    }
     pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
 }
 
@@ -275,8 +282,9 @@ void Scanner::SetEnabled(bool aEnabled) {
 }
 
 
-Scanner::Scanner(int aPort, bool aDebug, const char * aName, EEventType aEventType, int aLedOK, int aLedWait, int aLedNOK) {
+Scanner::Scanner(int aPort, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aLedOK, int aLedWait, int aLedNOK) {
     _name = aName;
+    _welcome = aWelcome;
     _event = aEventType;
     _led_ok = aLedOK;
     _led_wait = aLedWait;
@@ -310,6 +318,11 @@ Scanner::Scanner(int aPort, bool aDebug, const char * aName, EEventType aEventTy
 Scanner::~Scanner() {
     _fps->Close();
     delete _fps;
+    if(sLCDInit == true) {
+        sLCDInit = false;
+        lcd_i2c_clear(&sLCD);
+        LCD_I2C_BACKLIGHT_OFF(&sLCD);
+    }
 }
 
 

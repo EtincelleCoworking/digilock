@@ -70,8 +70,8 @@
 
 static volatile bool            sBlinkLoop;
 
-static Scanner * scan_entry = new Scanner(GT511_PORT_ENTRY, false, "ENTRY", EEventTypeEntry, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK);
-static Scanner * scan_exit = new Scanner(GT511_PORT_EXIT, false, "EXIT", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
+static Scanner * scan_entry = new Scanner(GT511_PORT_ENTRY, false, "ENTRY", "Bienvenue,", EEventTypeEntry, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK);
+static Scanner * scan_exit = new Scanner(GT511_PORT_EXIT, false, "EXIT", "A bientot,", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
 #define scan_enroll scan_exit
 static Intercom * scan_intercom = new Intercom();
 
