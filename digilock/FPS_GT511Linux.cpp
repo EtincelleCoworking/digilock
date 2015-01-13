@@ -249,13 +249,14 @@ bool Response_Packet::CheckParsing(byte b, byte propervalue, byte alternatevalue
 
 #define RESPONSE_LEN (12)
 
-FPS_GT511::FPS_GT511(int port, int baud, const char * mode) {
-	if(RS232_OpenComport(port, baud, mode)) {
-		printf("Cannot open Com Port\n");
+FPS_GT511::FPS_GT511(char * port, int baud, const char * mode) {
+    _com_port = RS232_OpenComport(port, baud, mode);
+    if(_com_port == -1) {
+		printf("Cannot open Com Port %s\n", port);
         _available = false;
 	}
 	else {
-		_com_port = port;
+		//_com_port = port;
 		_baud_rate = baud;
 		_mode = mode;
         _available = true;
@@ -368,39 +369,40 @@ bool FPS_GT511::SetLED(bool on)
 // Parameter: 9600, 19200, 38400, 57600, 115200
 // Returns: True if success, false if invalid baud
 // NOTE: Untested (don't have a logic level changer and a voltage divider is too slow)
-bool FPS_GT511::ChangeBaudRate(int baud)
-{
-	if ((baud == 9600) || (baud == 19200) || (baud == 38400) || (baud == 57600) || (baud == 115200))
-	{
-
-		if (UseSerialDebug) 
-            //~ Serial.println("FPS - ChangeBaudRate");
-            printf("FPS - ChangeBaudRate\n");
-		Command_Packet* cp = new Command_Packet();
-		cp->Command = Command_Packet::Commands::Open;
-		cp->ParameterFromInt(baud);
-		byte* packetbytes = cp->GetPacketBytes();
-		SendCommand(packetbytes, COMMAND_PACKET_LEN);
-		Response_Packet* rp = GetResponse();
-		bool retval = rp->ACK;
-		if (retval) 
-		{
-			//_serial.end();
-			RS232_CloseComport(_com_port);
-			//_serial.begin(baud);			
-			if(RS232_OpenComport(_com_port, baud, _mode)) {
-				printf("Cannot open Com Port\n");
-			}
-			else {
-				_baud_rate = baud;
-			}
-		}
-		delete rp;
-		delete[] packetbytes;
-		return retval;
-	}
-	return false;
-}
+//bool FPS_GT511::ChangeBaudRate(int baud)
+//{
+//	if ((baud == 9600) || (baud == 19200) || (baud == 38400) || (baud == 57600) || (baud == 115200))
+//	{
+//
+//		if (UseSerialDebug) 
+//            //~ Serial.println("FPS - ChangeBaudRate");
+//            printf("FPS - ChangeBaudRate\n");
+//		Command_Packet* cp = new Command_Packet();
+//		cp->Command = Command_Packet::Commands::Open;
+//		cp->ParameterFromInt(baud);
+//		byte* packetbytes = cp->GetPacketBytes();
+//		SendCommand(packetbytes, COMMAND_PACKET_LEN);
+//		Response_Packet* rp = GetResponse();
+//		bool retval = rp->ACK;
+//		if (retval) 
+//		{
+//			//_serial.end();
+//			RS232_CloseComport(_com_port);
+//			//_serial.begin(baud);			
+//            _com_port = RS232_OpenComport(_com_port_name, baud, _mode);
+//            if(_com_port == -1) {
+//				printf("Cannot open Com Port\n");
+//			}
+//			else {
+//				_baud_rate = baud;
+//			}
+//		}
+//		delete rp;
+//		delete[] packetbytes;
+//		return retval;
+//	}
+//	return false;
+//}
 
 // Gets the number of enrolled fingerprints
 // Return: The total number of enrolled fingerprints

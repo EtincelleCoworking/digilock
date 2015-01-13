@@ -21,31 +21,52 @@
 #include "scanner.h"
 
 
-#define LCD_DEFAULT_LINE_0      (char *)"Etincelle      "
-#define LCD_DEFAULT_LINE_1      (char *)"  Coworking    "
-#define LCD_WELCOME_LINE_0      (char *)"Bienvenue      "
-#define LCD_FORBIDDEN_LINE_0    (char *)"Acces non      "
-#define LCD_FORBIDDEN_LINE_1    (char *)" autorise !    "
+//#define LCD_DEFAULT_LINE_0      (char *)"Etincelle      "
+//#define LCD_DEFAULT_LINE_1      (char *)"  Coworking    "
+//#define LCD_WELCOME_LINE_0      (char *)"Bienvenue      "
+//#define LCD_FORBIDDEN_LINE_0    (char *)"Acces non      "
+//#define LCD_FORBIDDEN_LINE_1    (char *)" autorise !    "
 
-#define HEARTBEAT_INTERVAL_MS   5000
-#define RELAY_INTERVAL_MS       3000
+//#define HEARTBEAT_INTERVAL_MS   5000
+//#define RELAY_INTERVAL_MS       3000
 
-#define FPS_BAUD                9600
+//#define FPS_BAUD                9600
 static char sMode[] =   {'8', 'N', '1', 0};
-
+static volatile bool sLCDInit = false;
 
 #ifndef __APPLE__
     lcd_i2c_t sLCD = {0};
-    static volatile bool sLCDInit = false;
+#else
+#  define HIGH 1
+#  define LOW 0
+# define digitalWrite(p, i)  printf("digitalWrite pin %d value %d\n", p, i)
 #endif
+
+
+static int gRelayIntervalMS;
+static int gHeartbeatIntervalMS;
+static int gPinLockRelay;
+static char gLCDForbiddenLine0[16+1]="";
+static char gLCDForbiddenLine1[16+1]="";
+static char gLCDDefaultLine0[16+1]="";
+static char gLCDDefaultLine1[16+1]="";
+
+
+void Scanner::SetCommonStrings(char *aDefault0, char *aDefault1, char *aForbidden0, char *aForbidden1 ) {
+    strcpy(gLCDDefaultLine0, aDefault0);
+    strcpy(gLCDDefaultLine1, aDefault1);
+    strcpy(gLCDForbiddenLine0, aForbidden0);
+    strcpy(gLCDForbiddenLine1, aForbidden1);
+}
 
 
 static void * thread_open_relay(void * aIgnored) {
     printf("OPEN RELAY START\n");
-    digitalWrite(EPinLockRelay, HIGH);
-    usleep(RELAY_INTERVAL_MS * 1000);
-    digitalWrite(EPinLockRelay, LOW);
+    digitalWrite(gPinLockRelay, HIGH);
+    usleep(gRelayIntervalMS * 1000);
+    digitalWrite(gPinLockRelay, LOW);
     printf("OPEN RELAY STOP\n");
+    return NULL;
 }
 
 static void * scan_thread(void * aScanner) {
@@ -92,7 +113,7 @@ static void * scan_thread(void * aScanner) {
                     // turn on red LED
                     printf("%s forbidden for unknown fingerprint ID\n", scanner->GetName());
                     scanner->ShowLED(ELEDTypeNOK, true);
-                    scanner->ShowLCDMessage(LCD_FORBIDDEN_LINE_0, LCD_FORBIDDEN_LINE_1);
+                    scanner->ShowLCDMessage(gLCDForbiddenLine0, gLCDForbiddenLine1);
                     db_insert_fingerprint_event(-1, 0, scanner->GetEvent(), false);
                 }
             }
@@ -168,11 +189,13 @@ bool Scanner::IsEnabled() {
 
 
 void lcd_default() {
+#ifndef __APPLE__
     lcd_i2c_clear(&sLCD);
     lcd_i2c_gotoxy(&sLCD, 0, 0);
     lcd_i2c_puts(&sLCD, LCD_DEFAULT_LINE_0);
     lcd_i2c_gotoxy(&sLCD, 0, 1);
     lcd_i2c_puts(&sLCD, LCD_DEFAULT_LINE_1);
+#endif
 }
 
 
@@ -185,7 +208,7 @@ static void * thread_shut_lcd(void * aScanner) {
 
 
 void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
-
+#ifndef __APPLE__
     printf("LCD 0: %s|\n", aLine0);
     printf("LCD 1: %s|\n", aLine1);
 
@@ -202,6 +225,7 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
     if(aLine1) {
         lcd_i2c_puts(&sLCD, aLine1);
     }
+#endif
     pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
 }
 
@@ -232,7 +256,7 @@ void Scanner::ShutdownLEDs() {
 void Scanner::Heartbeat() {
     static long long ts = millisecs();
 
-    if(millisecs() - ts > HEARTBEAT_INTERVAL_MS) {
+    if(millisecs() - ts > gHeartbeatIntervalMS) {
 
         digitalWrite(_led_ok, HIGH);
         usleep(10 * 1000);
@@ -304,15 +328,19 @@ void Scanner::SetEnabled(bool aEnabled) {
 }
 
 
-Scanner::Scanner(int aPort, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aLedOK, int aLedWait, int aLedNOK) {
-    _name = aName;
-    _welcome = aWelcome;
+Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aMessage, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS) {
+    strcpy(_name, aName);
+    strcpy(_message, aMessage);
     _event = aEventType;
     _led_ok = aLedOK;
     _led_wait = aLedWait;
     _led_nok = aLedNOK;
     
-    _fps = new FPS_GT511(aPort, FPS_BAUD, sMode);
+    gRelayIntervalMS = aRelayIntervalMS;
+    gHeartbeatIntervalMS = aHeartbeatIntervalMS;
+    gPinLockRelay = aPinLockRelay;
+    
+    _fps = new FPS_GT511(aPortName, aBaudRate, sMode);
     _fps->UseSerialDebug = aDebug;
     _fps->Open();
 
@@ -342,8 +370,10 @@ Scanner::~Scanner() {
     delete _fps;
     if(sLCDInit == true) {
         sLCDInit = false;
+#ifndef __APPLE__
         lcd_i2c_clear(&sLCD);
         LCD_I2C_BACKLIGHT_OFF(&sLCD);
+#endif
     }
 }
 

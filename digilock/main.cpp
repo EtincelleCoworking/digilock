@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <signal.h>
+#include "iniparser.h"
 
 #ifdef __APPLE__
 #  include <sys/malloc.h>
@@ -46,8 +47,8 @@
 #  define GT511_PORT_ENROLL     ttyUSB0
 #endif
 
-#define INTERCOM_START_DATE     12
-#define INTERCOM_END_DATE       22
+//#define INTERCOM_START_DATE     12
+//#define INTERCOM_END_DATE       22
 
 
 
@@ -82,10 +83,10 @@
 
 static volatile bool            sBlinkLoop;
 
-static Scanner * scan_entry = new Scanner(GT511_PORT_ENTRY, false, "ENTRY", "Bienvenue,", EEventTypeEntry, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK);
-static Scanner * scan_exit = new Scanner(GT511_PORT_EXIT, false, "EXIT", "A bientot,", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
-#define scan_enroll scan_exit
-static Intercom * scan_intercom = new Intercom();
+Scanner * gScanEntry = NULL; //new Scanner(GT511_PORT_ENTRY, false, "ENTRY", "Bienvenue,", EEventTypeEntry, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK);
+static Scanner * gScanExit = NULL; //new Scanner(GT511_PORT_EXIT, false, "EXIT", "A bientot,", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
+#define gScanEnroll gScanExit
+static Intercom * gScanIntercom = NULL;//new Intercom();
 
 #define BUFFER_LEN  256
 char sBuffer[256];
@@ -105,10 +106,101 @@ void getline() {
 }
 
 
+void quit(int aIgnored) {
+    // close libcurl + sqlite
+    req_cleanup();
+    db_close();
+    
+    // stop scans
+    gScanEntry->SetEnabled(false);
+    gScanExit->SetEnabled(false);
+    gScanIntercom->SetEnabled(false);
+    
+    delete gScanEntry;
+    delete gScanExit;
+    delete gScanIntercom;
+    
+    printf("Finished :)\n");
+    
+    exit(0);
+}
+
+
+void init() {
+    
+    dictionary * dic = iniparser_load("./config.ini");
+    if(dic) {
+        // hw config
+        int FPS_BAUD = iniparser_getint(dic, "HW_CONFIG:FPS_BAUD", -1);
+        char * COM_ENTRY = iniparser_getstring(dic, "HW_CONFIG:COM_ENTRY", NULL);
+        char * COM_EXIT = iniparser_getstring(dic, "HW_CONFIG:COM_EXIT", NULL);
+        char * STR_ENTRY = iniparser_getstring(dic, "HW_CONFIG:STR_ENTRY", NULL);
+        char * STR_EXIT = iniparser_getstring(dic, "HW_CONFIG:STR_EXIT", NULL);
+        
+        // pins
+        int EPinLockRelay = iniparser_getint(dic, "HW_PINS:EPinLockRelay", -1);
+        int EPinIntercomBuzzerIN = iniparser_getint(dic, "HW_PINS:EPinIntercomBuzzerIN", -1);
+        int EPinIntercomBuzzerOUT = iniparser_getint(dic, "HW_PINS:EPinIntercomBuzzerOUT", -1);
+        int EPinIntercomButtonOUT = iniparser_getint(dic, "HW_PINS:EPinIntercomButtonOUT", -1);
+        int ELEDPinEntryOK = iniparser_getint(dic, "HW_PINS:ELEDPinEntryOK", -1);
+        int ELEDPinEntryNOK = iniparser_getint(dic, "HW_PINS:ELEDPinEntryNOK", -1);
+        int ELEDPinEntryWait = iniparser_getint(dic, "HW_PINS:ELEDPinEntryWait", -1);
+        int ELEDPinExitOK = iniparser_getint(dic, "HW_PINS:ELEDPinExitOK", -1);
+        int ELEDPinExitNOK = iniparser_getint(dic, "HW_PINS:ELEDPinExitNOK", -1);
+        int ELEDPinExitWait = iniparser_getint(dic, "HW_PINS:ELEDPinExitWait", -1);
+        
+        // other
+        int INTERCOM_START = iniparser_getint(dic, "SW_CONFIG:INTERCOM_START", -1);
+        int INTERCOM_STOP = iniparser_getint(dic, "SW_CONFIG:INTERCOM_START", -1);
+
+        char * STR_WELCOME = iniparser_getstring(dic, "SW_CONFIG:STR_WELCOME", NULL);
+        char * STR_BYE = iniparser_getstring(dic, "SW_CONFIG:STR_BYE", NULL);
+        char * STR_FORBIDDEN0 = iniparser_getstring(dic, "SW_CONFIG:STR_FORBIDDEN0", NULL);
+        char * STR_FORBIDDEN1 = iniparser_getstring(dic, "SW_CONFIG:STR_FORBIDDEN1", NULL);
+        char * STR_DEFAULT0 = iniparser_getstring(dic, "SW_CONFIG:STR_DEFAULT0", NULL);
+        char * STR_DEFAULT1 = iniparser_getstring(dic, "SW_CONFIG:STR_DEFAULT1", NULL);
+
+        int RELAY_INTERVAL_MS = iniparser_getint(dic, "SW_CONFIG:RELAY_INTERVAL_MS", -1);
+        int HEARTBEAT_INTERVAL_MS = iniparser_getint(dic, "SW_CONFIG:HEARTBEAT_INTERVAL_MS", -1);
+        
+        int INTERCOM_CHEAT_PRESS_NUM = iniparser_getint(dic, "SW_CONFIG:INTERCOM_CHEAT_PRESS_NUM", -1);
+        int INTERCOM_CHEAT_PRESS_INTERVAL_MS = iniparser_getint(dic, "SW_CONFIG:INTERCOM_CHEAT_PRESS_INTERVAL_MS", -1);
+        int INTERCOM_DO_BUZZER_MS = iniparser_getint(dic, "SW_CONFIG:INTERCOM_DO_BUZZER_MS", -1);
+        int INTERCOM_DO_BUTTON_MS = iniparser_getint(dic, "SW_CONFIG:INTERCOM_DO_BUTTON_MS", -1);
+        
+        gScanEntry = new Scanner(COM_ENTRY, FPS_BAUD, false, STR_ENTRY, STR_WELCOME, EEventTypeEntry, EPinLockRelay, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
+        gScanExit = new Scanner(COM_EXIT, FPS_BAUD, false, STR_EXIT, STR_BYE, EEventTypeExit, EPinLockRelay, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
+        gScanEntry->SetCommonStrings(STR_DEFAULT0, STR_DEFAULT1, STR_FORBIDDEN0, STR_FORBIDDEN1);
+        
+        
+        gScanIntercom = new Intercom(EPinIntercomButtonOUT, EPinIntercomBuzzerOUT, EPinIntercomBuzzerIN, INTERCOM_START, INTERCOM_STOP);
+        gScanIntercom->SetCommonIntervals(INTERCOM_CHEAT_PRESS_NUM, INTERCOM_CHEAT_PRESS_INTERVAL_MS, INTERCOM_DO_BUZZER_MS, INTERCOM_DO_BUTTON_MS);
+        
+        
+        
+        iniparser_freedict(dic);
+        
+        // catch ctrl-c
+        signal(SIGINT, quit);
+        
+        // init sqlite, curl and devices
+        db_open();
+        req_init();
+        gScanEntry->SetEnabled(true);
+        gScanExit->SetEnabled(true);
+        gScanIntercom->SetEnabled(true);
+    }
+    else {
+        printf("Cannot open config file !\nBye.\n");
+        exit(-2);
+    }
+}
+
+
 
 int enroll(int aUserID) {
-    FPS_GT511 * fps_enroll = scan_enroll->GetFPS();
-    FPS_GT511 * fps_entry = scan_entry->GetFPS();
+    FPS_GT511 * fps_enroll = gScanEnroll->GetFPS();
+    FPS_GT511 * fps_entry = gScanEntry->GetFPS();
 
     int enrollid = 0;
     bool usedid = true;
@@ -276,54 +368,27 @@ int enroll(int aUserID) {
 static void * blink(void * aPort) {
     sBlinkLoop = true;
 
-    scan_entry->SetEnabled(false);
-    scan_exit->SetEnabled(false);
+    gScanEntry->SetEnabled(false);
+    gScanExit->SetEnabled(false);
     
     // loop
     while(sBlinkLoop) {
-        scan_entry->GetFPS()->SetLED(true);
-        scan_exit->GetFPS()->SetLED(true);
+        gScanEntry->GetFPS()->SetLED(true);
+        gScanExit->GetFPS()->SetLED(true);
         usleep(500 * 1000);
-        scan_entry->GetFPS()->SetLED(false);
-        scan_exit->GetFPS()->SetLED(false);
+        gScanEntry->GetFPS()->SetLED(false);
+        gScanExit->GetFPS()->SetLED(false);
         usleep(500 * 1000);
     }
     printf("BLINK thread stopped.\n");
     return NULL;
 }
 
-void quit(int aIgnored) {
-    // close libcurl + sqlite
-    req_cleanup();
-    db_close();
-
-    // stop scans
-    scan_entry->SetEnabled(false);
-    scan_exit->SetEnabled(false);
-    scan_intercom->SetEnabled(false, 0, 0);
-
-
-    delete scan_entry;
-    delete scan_exit;
-    delete scan_intercom;
-
-    printf("Finished :)\n");
-
-    exit(0);
-}
 
 int main() {
     
-    // catch ctrl-c
-    signal(SIGINT, quit);
+    init();
 
-    // init sqlite, curl and devices
-    db_open();
-    req_init();
-    scan_entry->SetEnabled(true);
-    scan_exit->SetEnabled(true);
-    scan_intercom->SetEnabled(true, INTERCOM_START_DATE, INTERCOM_END_DATE);
-    
     pthread_t thr_blink;
     
     do {
@@ -331,34 +396,34 @@ int main() {
         getline();
         if (1) {
             if(strcasecmp(sBuffer, COMMAND_ENROLL) == 0) {
-                scan_exit->SetEnabled(false);
-                scan_entry->SetEnabled(false);
+                gScanExit->SetEnabled(false);
+                gScanEntry->SetEnabled(false);
                 enroll(-1);
-                scan_exit->SetEnabled(true);
-                scan_entry->SetEnabled(true);
+                gScanExit->SetEnabled(true);
+                gScanEntry->SetEnabled(true);
             }
             else if(strcasecmp(sBuffer, COMMAND_ENTRY_STOP) == 0) {
-                scan_entry->SetEnabled(false);
+                gScanEntry->SetEnabled(false);
                 printf("ENTRY scan thread stopped !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_ENTRY_START) == 0) {
-                scan_entry->SetEnabled(true);
+                gScanEntry->SetEnabled(true);
                 printf("ENTRY scan thread started !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_EXIT_STOP) == 0) {
-                scan_exit->SetEnabled(false);
+                gScanExit->SetEnabled(false);
                 printf("EXIT scan thread stopped !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_EXIT_START) == 0) {
-                scan_exit->SetEnabled(true);
+                gScanExit->SetEnabled(true);
                 printf("EXIT scan thread started !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_INTERCOM_STOP) == 0) {
-                scan_intercom->SetEnabled(false, 0, 0);
+                gScanIntercom->SetEnabled(false);
                 printf("INTERCOM scan thread stopped !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_INTERCOM_START) == 0) {
-                scan_intercom->SetEnabled(true, INTERCOM_START_DATE, INTERCOM_END_DATE);
+                gScanIntercom->SetEnabled(true);
                 printf("INTERCOM scan thread started !\n");
             }
             else if(strcasecmp(sBuffer, COMMAND_DELETE_FGP) == 0) {
@@ -436,24 +501,24 @@ int main() {
                 }
             }
             else if(strcasecmp(sBuffer, COMMAND_EMPTY_FGP) == 0) {
-                scan_entry->SetEnabled(false);
-                scan_exit->SetEnabled(false);
-                scan_entry->GetFPS()->DeleteAll();
-                scan_exit->GetFPS()->DeleteAll();
+                gScanEntry->SetEnabled(false);
+                gScanExit->SetEnabled(false);
+                gScanEntry->GetFPS()->DeleteAll();
+                gScanExit->GetFPS()->DeleteAll();
             }
             else if(strcasecmp(sBuffer, COMMAND_SYNC) == 0) {
                 /*printf("Synchronize device data now ?\nThe scanning will be paused: ");
 
                 getline();
                 if(0 == strcasecmp(sBuffer, COMMAND_YES)) {
-                    scan_entry->SetEnabled(false);
-                    scan_exit->SetEnabled(false);
+                    gScanEntry->SetEnabled(false);
+                    gScanExit->SetEnabled(false);
 
                     // TODO:
                     
                     printf("Done.");
-                    scan_entry->SetEnabled(true);
-                    scan_exit->SetEnabled(true);
+                    gScanEntry->SetEnabled(true);
+                    gScanExit->SetEnabled(true);
                 }
                 else {
                     printf("Cancelled.");
@@ -461,17 +526,17 @@ int main() {
             }
             else if(strcasecmp(sBuffer, COMMAND_RELOAD) == 0) {
                 // delete all fingerprints and reload templates from database
-                scan_entry->SetEnabled(false);
-                scan_exit->SetEnabled(false);
-                scan_entry->GetFPS()->DeleteAll();
-                scan_exit->GetFPS()->DeleteAll();
+                gScanEntry->SetEnabled(false);
+                gScanExit->SetEnabled(false);
+                gScanEntry->GetFPS()->DeleteAll();
+                gScanExit->GetFPS()->DeleteAll();
 
                 int max_fgp = db_count_fingerprints();
                 for(int idx = 0; idx < max_fgp; idx++) {
                     byte * fgp = db_get_template(idx);
                     if(fgp != NULL) {
-                        scan_entry->GetFPS()->SetTemplate(fgp, idx, false);
-                        scan_exit->GetFPS()->SetTemplate(fgp, idx, false);
+                        gScanEntry->GetFPS()->SetTemplate(fgp, idx, false);
+                        gScanExit->GetFPS()->SetTemplate(fgp, idx, false);
                         free(fgp);
                         printf("Reloaded fingerprint template ID: %d\n", idx);
                     }
@@ -479,8 +544,8 @@ int main() {
 
                 printf("Reload done.\n");
 
-                scan_entry->SetEnabled(true);
-                scan_exit->SetEnabled(true);
+                gScanEntry->SetEnabled(true);
+                gScanExit->SetEnabled(true);
             }
             else if(strcasecmp(sBuffer, COMMAND_BLINK_START) == 0) {
                 sBlinkLoop = true;
@@ -489,18 +554,18 @@ int main() {
                 }
             }
             else if(strcasecmp(sBuffer, COMMAND_COUNT) == 0) {
-                printf("%s has %d enrolls.\n", scan_entry->GetName(), scan_entry->GetFPS()->GetEnrollCount());
-                printf("%s has %d enrolls.\n", scan_exit->GetName(), scan_exit->GetFPS()->GetEnrollCount());
+                printf("%s has %d enrolls.\n", gScanEntry->GetName(), gScanEntry->GetFPS()->GetEnrollCount());
+                printf("%s has %d enrolls.\n", gScanExit->GetName(), gScanExit->GetFPS()->GetEnrollCount());
             }
             else if(strcasecmp(sBuffer, COMMAND_BLINK_STOP) == 0) {
                 printf("BLINK thread stopping...\n");
                 sBlinkLoop = false;
             }
             else if(strcasecmp(sBuffer, COMMAND_DUMP_ENTRY) == 0) {
-                scan_entry->Dump();
+                gScanEntry->Dump();
             }
             else if(strcasecmp(sBuffer, COMMAND_DUMP_EXIT) == 0) {
-                scan_exit->Dump();
+                gScanExit->Dump();
             }
             else if(strcasecmp(sBuffer, "") == 0)  {
             }

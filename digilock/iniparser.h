@@ -10,6 +10,10 @@
 #ifndef _INIPARSER_H_
 #define _INIPARSER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
 /*---------------------------------------------------------------------------
                                 Includes
  ---------------------------------------------------------------------------*/
@@ -23,7 +27,7 @@
  * It is not needed for Windows platforms.
  * Uncomment it if needed.
  */
-/* #include <unistd.h> */
+#include <unistd.h>
 
 #include "dictionary.h"
 
@@ -304,4 +308,8 @@ dictionary * iniparser_load(const char * ininame);
 /*--------------------------------------------------------------------------*/
 void iniparser_freedict(dictionary * d);
 
+#ifdef __cplusplus
+}
+#endif
+    
 #endif

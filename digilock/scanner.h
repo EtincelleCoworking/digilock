@@ -32,10 +32,10 @@ class Scanner
 {
     
 public:
-    Scanner(int aPort, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aLedOK, int aLedWait, int aLedNOK);
+    Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS);
     ~Scanner();
 
-    
+    void            SetCommonStrings(char * aDefault0, char * aDefault1, char * aForbidden0, char * aForbidden1);
     void            SetEnabled(bool aEnabled);
     FPS_GT511 *     GetFPS();
     bool            IsEnabled();
@@ -54,8 +54,8 @@ private:
     int             _led_nok;
     int             _led_wait;
     FPS_GT511 *     _fps;
-    const char *    _name;
-    const char *    _welcome;
+    char            _name[16+1]; // TODO: get this from LCD char width
+    char            _message[16+1];
     EEventType      _event;
     pthread_t       _scan_thread;
     pthread_t       _led_thread;

@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "rs232.h"
-#include "ports.h"
+//#include "ports.h"
 #include <pthread.h>
 
 
@@ -197,7 +197,7 @@ class FPS_GT511
 	// Creates a new object to interface with the fingerprint scanner
 	//~ FPS_GT511(uint8_t rx, uint8_t tx);
 	
-	FPS_GT511(int port, int baud, const char * mode);
+	FPS_GT511(char * port, int baud, const char * mode);
 	
 	// destructor
 	~FPS_GT511();
@@ -221,7 +221,7 @@ class FPS_GT511
 	// Parameter: 9600 - 115200
 	// Returns: True if success, false if invalid baud
 	// NOTE: Untested (don't have a logic level changer and a voltage divider is too slow)
-	bool ChangeBaudRate(int baud);
+	// bool ChangeBaudRate(int baud);
 
 	// Gets the number of enrolled fingerprints
 	// Return: The total number of enrolled fingerprints

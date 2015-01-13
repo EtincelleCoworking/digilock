@@ -45,29 +45,39 @@ long long millis() {
 
 //#define LONGPRESS_ONLY
 
-#define CHEAT_PRESS_NUM             4
-#define CHEAT_PRESS_INTERVAL_MS     3000
-#define DO_BUZZER_DELAY_MS          3000
-#define DO_BUTTON_DELAY_MS          3000
+static bool aLongpressOnly = true;
+static int gCheatPressNum;
+static int gCheatPressInterval;
+static int gBuzzerMS;
+static int gButtonMS;
 
-//#define PIN_INTERCOM_BUTTON         2
-//#define PIN_INTERCOM_BUZZER         3
-//#define PIN_INTERCOM_DO_BUZZ        4
+static int gPinIntercomButtonOUT;
+static int gPinIntercomBuzzerOUT;
+static int gPinIntercomBuzzerIN;
+
+void Intercom::SetCommonIntervals(int aCheatPressNum, int aCheatPressInterval, int aBuzzerMS, int aButtonMS) {
+    gCheatPressInterval = aCheatPressInterval;
+    gCheatPressNum = aCheatPressNum;
+    gButtonMS = aButtonMS;
+    gBuzzerMS = aBuzzerMS;
+    aLongpressOnly = false;
+}
+
 
 void open_door(int aNumPresses) {
     printf("OPEN DOOR START\n");
-    digitalWrite(EPinIntercomButtonOUT, HIGH);
-    usleep(DO_BUTTON_DELAY_MS * 1000);
-    digitalWrite(EPinIntercomButtonOUT, LOW);
+    digitalWrite(gPinIntercomButtonOUT, HIGH);
+    usleep(gButtonMS * 1000);
+    digitalWrite(gPinIntercomButtonOUT, LOW);
     printf("OPEN DOOR STOP\n");
     db_insert_intercom_event(aNumPresses, true);
 }
 
 void ring_buzzer(int aNumPresses) {
     printf("RING BUZZER START\n");
-    digitalWrite(EPinIntercomBuzzerOUT, HIGH);
-    usleep(DO_BUZZER_DELAY_MS * 1000);
-    digitalWrite(EPinIntercomBuzzerOUT, LOW);
+    digitalWrite(gPinIntercomBuzzerOUT, HIGH);
+    usleep(gBuzzerMS * 1000);
+    digitalWrite(gPinIntercomBuzzerOUT, LOW);
     printf("RING BUZZER STOP\n");
     db_insert_intercom_event(aNumPresses, true);
 }
@@ -88,17 +98,17 @@ void loop_cheat() {
 #ifdef LONGPRESS_ONLY
         while (digitalRead(EPinIntercomBuzzerIN) == HIGH) {
             // wait till buzz is unpressed
-            delay(10);
+            usleeo(10 * 1000);
         }
         
-        if(millis() - ms > CHEAT_PRESS_INTERVAL_MS) {
+        if(millis() - ms > gCheatPressInterval) {
             // pressed long enough, open doors
-            open_door();
+            open_door(-1);
         }
 #else
         unsigned char presses = 0;
         bool pressed = false;
-        for (presses = 0; millis() - ms < CHEAT_PRESS_INTERVAL_MS; ) {
+        for (presses = 0; millis() - ms < gCheatPressInterval; ) {
             while (digitalRead(EPinIntercomBuzzerIN) == HIGH) {
                 // wait till buzz is unpressed
                 usleep(10 * 1000); // debounce
@@ -112,9 +122,9 @@ void loop_cheat() {
             }
         }
         
-        if(presses == CHEAT_PRESS_NUM) {
+        if(presses == gCheatPressNum) {
             // pressed the right number of times during the given interval, open doors
-            open_door(CHEAT_PRESS_NUM);
+            open_door(gCheatPressNum);
         }
 #endif
         else {
@@ -143,10 +153,17 @@ void * loop_thread(void * aIntercom) {
 }
 
 
-Intercom::Intercom() {
-    pinMode(EPinIntercomButtonOUT, OUTPUT);
-    pinMode(EPinIntercomBuzzerOUT, OUTPUT);
-    pinMode(EPinIntercomBuzzerIN, INPUT);
+Intercom::Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime) {
+    _start_time = aStartTime;
+    _end_time = aEndTime;
+
+    gPinIntercomButtonOUT = aPinIntercomButtonOUT;
+    gPinIntercomBuzzerOUT = aPinIntercomBuzzerOUT;
+    gPinIntercomBuzzerIN = aPinIntercomBuzzerIN;
+    
+    pinMode(gPinIntercomButtonOUT, OUTPUT);
+    pinMode(gPinIntercomBuzzerOUT, OUTPUT);
+    pinMode(gPinIntercomBuzzerIN, INPUT);
 }
 
 Intercom::~Intercom() {
@@ -165,7 +182,7 @@ bool Intercom::IsEnabled() {
     return _enabled;
 }
 
-void Intercom::SetEnabled(bool aEnabled, int aStartTime, int aEndTime) {
+void Intercom::SetEnabled(bool aEnabled) {
     _enabled = aEnabled;
     if(_enabled == false) {
         // wait for thread to end
@@ -175,8 +192,6 @@ void Intercom::SetEnabled(bool aEnabled, int aStartTime, int aEndTime) {
     }
     else {
         // loop
-        _start_time = aStartTime;
-        _end_time = aEndTime;
         if(0 != pthread_create(&_thread, NULL, loop_thread, this)) {
             printf("pthread_create error");
         }
@@ -184,12 +199,11 @@ void Intercom::SetEnabled(bool aEnabled, int aStartTime, int aEndTime) {
     
     printf("INTERCOM: %s ", _enabled ? "ON" : "OFF");
     if(aEnabled) {
-        if(aStartTime == aEndTime)
+        if(_end_time == _start_time)
             printf("CHEAT CODE ALWAYS ON\n");
         else
-            printf("FREE OPEN START TIME %.2d:00 / END TIME %.2d:00\n", aStartTime, aEndTime);
+            printf("FREE OPEN START TIME %.2d:00 / END TIME %.2d:00\n", _start_time, _end_time);
     }
-
 }
 
 
