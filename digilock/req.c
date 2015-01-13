@@ -22,10 +22,11 @@
 #include <string.h>
 #include <ctype.h>
 
-#define SERVER_BASE_URL     "http://sesame.coworking-toulouse.com/"
-
 #include <inttypes.h>
 #include <string.h>
+
+
+static char * gBaseURL;
 
 long long millisecs() {
     struct timeval te;
@@ -84,7 +85,10 @@ char *url_decode(char *str) {
 }
 
 
-int req_init() {
+int req_init(char * aBaseURL) {
+
+    gBaseURL = (char *)malloc(strlen(aBaseURL) + 1);
+    strcpy(gBaseURL, aBaseURL);
     curl_global_init(CURL_GLOBAL_ALL);
     return 0;
 }
@@ -111,7 +115,7 @@ int req_log_fingerprint(long long aTimestamp, int aEventType, int aFingerprintID
            just as well be a https:// URL if that is what should receive the
            data. */
         char url[256];
-        sprintf(url, "%s%s", SERVER_BASE_URL, "api/log/fingerprint");
+        sprintf(url, "%s%s", gBaseURL, "api/log/fingerprint");
         curl_easy_setopt(curl, CURLOPT_URL, url);
 
         /* Now specify the POST data */
@@ -123,7 +127,7 @@ int req_log_fingerprint(long long aTimestamp, int aEventType, int aFingerprintID
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK)
-            fprintf(stderr, "req_log_fingerprint() failed: %s\n", curl_easy_strerror(res));
+            printf("req_log_fingerprint() failed: %s\n", curl_easy_strerror(res));
 
         /* always cleanup */
         curl_easy_cleanup(curl);
@@ -147,7 +151,7 @@ int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult) {
            just as well be a https:// URL if that is what should receive the
            data. */
         char url[256];
-        sprintf(url, "%s%s", SERVER_BASE_URL, "api/log/intercom");
+        sprintf(url, "%s%s", gBaseURL, "api/log/intercom");
         curl_easy_setopt(curl, CURLOPT_URL, url);
 
         /* Now specify the POST data */
@@ -159,7 +163,7 @@ int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult) {
         res = curl_easy_perform(curl);
         /* Check for errors */
         if(res != CURLE_OK)
-            fprintf(stderr, "req_log_intercom() failed: %s\n", curl_easy_strerror(res));
+            printf("req_log_intercom() failed: %s\n", curl_easy_strerror(res));
 
         /* always cleanup */
         curl_easy_cleanup(curl);
@@ -176,24 +180,31 @@ int req_user(int aUserID, char * aNick, char * aEmail) {
     curl = curl_easy_init();
     if(curl) {
 
-       char url[256];
-       sprintf(url, "%s%s", SERVER_BASE_URL, "api/user");
+        char url[256];
+        sprintf(url, "%s%s", gBaseURL, "api/user");
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
         char str[256];
-      sprintf(str, "id=%d&nick=%s&email=%s", aUserID, url_encode(aNick), url_encode(aEmail));
+
+        char * enc_nick = url_encode(aNick);
+        char * enc_mail = url_encode(aEmail);
+
+
+      sprintf(str, "id=%d&nick=%s&email=%s", aUserID, enc_nick, enc_mail);
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
       res = curl_easy_perform(curl);
       if(res != CURLE_OK)
-            fprintf(stderr, "req_user() failed: %s\n",  curl_easy_strerror(res));
+            printf("req_user() failed: %s\n",  curl_easy_strerror(res));
+
+      free(enc_mail);
+      free(enc_nick);
 
       curl_easy_cleanup(curl);
     }
     return (int)res;
 }
-
 
 
 
@@ -205,24 +216,22 @@ int req_enroll(int aUserID, int aFingerprintID, char * aData64) {
     if(curl) {
 
         char url[256];
-        sprintf(url, "%s%s%d%s", SERVER_BASE_URL, "api/user/", aUserID, "/fingerprint");
+        sprintf(url, "%s%s%d%s", gBaseURL, "api/user/", aUserID, "/fingerprint");
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
-        printf(url);
+        char * enc_data64 = url_encode(aData64);
+        char str[32 + strlen(enc_data64)];
 
-        char str[32 + (2 * strlen(aData64))];
-        
-        // TODO: make base64 string w/ 
-        sprintf(str, "id=%d&image=%s", aFingerprintID, url_encode(aData64));
-
-        printf(str);
+        sprintf(str, "id=%d&image=%s", aFingerprintID, enc_data64);
 
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
         res = curl_easy_perform(curl);
         if(res != CURLE_OK)
-            fprintf(stderr, "req_fgp() failed: %s\n",  curl_easy_strerror(res));
+            printf("req_fgp() failed: %s\n",  curl_easy_strerror(res));
+
+        free(enc_data64);
 
         curl_easy_cleanup(curl);
     }

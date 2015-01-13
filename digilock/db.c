@@ -141,7 +141,7 @@ int db_close() {
 		fprintf(stderr, "Can't close database: %s\n", sqlite3_errmsg(sDB));
 	}
 	else {
-		fprintf(stdout, "Closed database %s successfully\n", DATABASE_FILE);
+        fprintf(stdout, "Closed database successfully\n");
 	}
 
 	return ret;
@@ -160,6 +160,7 @@ int db_close() {
 
 int alert(const char * aSubject, char * aMessage, EDBAlert aLevel) {
 	// TODO:
+    printf("***ALERT LEVEL %d:\n%s\n%s\n", aLevel, aSubject, aMessage);
 	return 0;
 }
 
@@ -170,7 +171,7 @@ static int exec(char * aSQL, bool aCommit, EDBAlert aAlertLevel) {
     
     sqlite3_mutex_enter(sqlite3_db_mutex(sDB));
 
-    
+
 	if(aCommit) {
 		rc = sqlite3_exec(sDB, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 		if(rc != SQLITE_OK ){
@@ -181,11 +182,11 @@ static int exec(char * aSQL, bool aCommit, EDBAlert aAlertLevel) {
 	
 	rc = sqlite3_exec(sDB, aSQL, NULL, 0, &zErrMsg);
 	if(rc != SQLITE_OK ){
-		fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        printf("SQL error: %s\n", zErrMsg);
 		alert(aSQL, zErrMsg, aAlertLevel);
 		sqlite3_free(zErrMsg);
 	} else {
-		//fprintf(stdout, "SQL OK: %s\n", aSQL);
+        //printf("SQL OK: %s\n", aSQL);
 		if(aCommit) {
 			rc = sqlite3_exec(sDB, "END TRANSACTION;", NULL, NULL, NULL);
 			if(rc != SQLITE_OK ){
@@ -201,7 +202,7 @@ static int exec(char * aSQL, bool aCommit, EDBAlert aAlertLevel) {
 
 
 int db_drop_tables() {
-    char sql[256];
+    char sql[64];
     int rc = -1;
 
     sprintf(sql, "DROP TABLE %s;", TABLE_EVENT);
@@ -217,18 +218,18 @@ int db_drop_tables() {
 }
 
 
-int db_open() {
+int db_open(char * aDatabaseFile) {
     int rc = -1;
     char sql[256];
 
 	/* Open database */
-	rc = sqlite3_open(DATABASE_FILE, &sDB);
+    rc = sqlite3_open(aDatabaseFile, &sDB);
     
 	if( rc ) {
 		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(sDB));
 		return -1;
 	} else {
-		fprintf(stdout, "Opened database %s successfully\n", DATABASE_FILE);
+        fprintf(stdout, "Opened database %s successfully\n", aDatabaseFile);
 	}
 
 	/* Create tables */
@@ -247,7 +248,7 @@ int db_open() {
 		 "CREATE TABLE IF NOT EXISTS %s ("  \
          "%s INT PRIMARY KEY NOT NULL," \
          "%s INT," \
-         "%s BLOB);",
+         "%s VARCHAR(1024));",
          TABLE_FGP,
          TABLE_FGP_ID,
          TABLE_FGP_CHECKSUM,
@@ -541,9 +542,18 @@ int db_insert_user(char * aEmail, char * aNick) {
 }
 
 
+//static void * thr_insert_fgp(void * data) {
+//    char * sql = (char *)data;
+//    printf("exec %s\n", sql);
+//   int rc = exec(sql, true, EDBAlertError);
+//    free(sql);
+//    printf("sql thread done %d\n", rc);
+//}
+
+
+
 int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int aDataLength) {
 	int rc;
-	char sql[256];
 
     int checksum = 0;
     int i = 0;
@@ -551,10 +561,44 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
         checksum += aData[i];
     }
 
+//    printf("FGP data (len: %d, chk: %d):\n", aDataLength, checksum);
+//    for(i = 0; i < aDataLength; i++) {
+//        printf("%.02x ", aData[i]);
+//    }
+//    printf("\nBase64:\n");
+
     size_t b64len = 0;
-    char * b64 = (char*)base64_encode(aData, aDataLength + 1, &b64len);
-    printf(b64);
-    printf("\nlen=%d\n", b64len);
+    char * b64 = (char*)base64_encode(aData, aDataLength, &b64len);
+    //printf(b64);
+    //printf("\nlen=%d\n", b64len);
+
+
+//    printf("\nUnbase64:\n");
+//    size_t unb64len;
+//    uint8_t * unb64 = base64_decode(b64, b64len, &unb64len);
+//    for(i = 0; i < unb64len; i++) {
+//        printf("%.02x ", unb64[i]);
+
+//        if(unb64[i] != aData[i]) {
+//            printf("Encode/decode error\n");
+//            break;
+//        }
+//    }
+//    printf("\nlen: %d\n", unb64len);
+
+
+//    size_t datasz = 1 + (aDataLength * 3);
+//    char * data =  (char *) malloc(datasz);
+//    memset(data, 0, datasz);
+//    char buf[3];
+//    for(i = 0; i < aDataLength; i++) {
+//        sprintf(buf, "%.02x ", aData[i]);
+//        strcat(data, buf);
+//    }
+//    printf("%s\n", data);
+
+    char * sql = (char *) malloc(strlen(b64) + 256);
+
 
 	// insert fgp
 	sprintf(sql,
@@ -567,9 +611,14 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
 		aFingerprintID,
         b64,
         checksum);
-	rc = exec(sql, true, EDBAlertError);
+    rc = exec(sql, true, EDBAlertError);
 
-    printf("insert fgp w/ %d\n", rc);
+    //char * msql = (char *)malloc(strlen(sql)+1);
+    //strcpy(msql, sql);
+
+    //pthread_t thr;
+    //pthread_create(&thr, NULL, thr_insert_fgp, msql);
+    //printf("insert fgp w/ %d\n", rc);
 
     // link user <=> fgp
 	sprintf(sql,
@@ -581,17 +630,16 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
 		aFingerprintID,
 		aUserID);
 	rc = exec(sql, true, EDBAlertError);
-
-    printf("link fgp w/ %d\n", rc);
+    //printf("link fgp w/ %d\n", rc);
 
     if(rc == SQLITE_OK) {
         req_enroll(aUserID, aFingerprintID, b64);
-
-        printf("req done\n");
+        //printf("req done\n");
     }
-    printf("free...");
+    //printf("free...");
+    free(sql);
     free(b64);
-    printf("free done\n");
+    //printf("free done\n");
 	return rc;
 }
 

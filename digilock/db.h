@@ -61,8 +61,6 @@ typedef enum EDBAlert {
 	EDBAlertFatal
 } EDBAlert;
 
-#define DATABASE_FILE		"digilock.sqlite"
-
 #define TABLE_USER			"User"
 #define TABLE_USER_ID		"id"
 #define TABLE_USER_NICK 	"nick"
@@ -70,7 +68,7 @@ typedef enum EDBAlert {
 
 #define TABLE_FGP			"Fingerprint"
 #define TABLE_FGP_ID		"id"
-#define TABLE_FGP_DATA		"data"
+#define TABLE_FGP_DATA		"data64"
 #define TABLE_FGP_CHECKSUM	"checksum"
 
 #define TABLE_USER_FGP		"UserFingerprint"
@@ -94,7 +92,7 @@ typedef enum EDBAlert {
 
 sqlite3 * db_get_database();
 int db_close();
-int db_open();
+int db_open(char * aDatabaseFile);
 int db_insert_fingerprint_event(int aFingerprintID, int aDetectionMS, EEventType aType, bool aResult);
 int db_insert_intercom_event(int aNumPresses, bool aResult);
 int db_insert_user(char * aEmail, char * aNick);

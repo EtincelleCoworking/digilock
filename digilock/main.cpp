@@ -180,6 +180,9 @@ void init() {
             printf("***WARNING! Bad ELEDPinExitWait in config file.\n");
         }
         // other
+        char * SERVER_BASE_URL = iniparser_getstring(dic, "SW_CONFIG:SERVER_BASE_URL", NULL);
+        char * DATABASE_FILE = iniparser_getstring(dic, "SW_CONFIG:DATABASE_FILE", NULL);
+
         int INTERCOM_START = iniparser_getint(dic, "SW_CONFIG:INTERCOM_START", -1);
         if(INTERCOM_START == -1) {
             printf("***WARNING! Bad INTERCOM_START in config file.\n");
@@ -228,19 +231,18 @@ void init() {
         gScanIntercom = new Intercom(EPinIntercomButtonOUT, EPinIntercomBuzzerOUT, EPinIntercomBuzzerIN, INTERCOM_START, INTERCOM_STOP);
         gScanIntercom->SetCommonIntervals(INTERCOM_CHEAT_PRESS_NUM, INTERCOM_CHEAT_PRESS_INTERVAL_MS, INTERCOM_DO_BUZZER_MS, INTERCOM_DO_BUTTON_MS);
         
-        
-        
-        iniparser_freedict(dic);
-        
         // catch ctrl-c
         signal(SIGINT, quit);
         
         // init sqlite, curl and devices
-        db_open();
-        req_init();
+        db_open(DATABASE_FILE);
+        req_init(SERVER_BASE_URL);
         gScanEntry->SetEnabled(true);
         gScanExit->SetEnabled(true);
         gScanIntercom->SetEnabled(true);
+
+
+        iniparser_freedict(dic);
     }
     else {
         printf("Cannot open config file !\nBye.\n");
@@ -343,15 +345,9 @@ int enroll(int aUserID) {
                                 if(0 == fps_entry->SetTemplate(buf, enrollid, false)) {
 
                                     printf("Template uploaded, updating database...\n");
-
-
                                     db_insert_fingerprint(aUserID, enrollid, buf, TEMPLATE_DATA_LEN);
-
                                     printf("fingerprint inserted...\n");
-
-
                                     db_insert_fingerprint_event(enrollid, 0, EEventTypeEnroll, true);
-
                                     printf("event inserted...\n");
 
 
