@@ -37,20 +37,18 @@
 #  include <pthread.h>
 #endif
 
-#ifdef __APPLE__
-#  define GT511_PORT_ENTRY      apple_ttyUSB0
-#  define GT511_PORT_ENROLL     apple_ttyUSB0
-#  define GT511_PORT_EXIT       apple_ttyUSB1
-#else
-#  define GT511_PORT_ENTRY      ttyUSB0
-#  define GT511_PORT_EXIT       ttyUSB1
-#  define GT511_PORT_ENROLL     ttyUSB0
-#endif
+//#ifdef __APPLE__
+//#  define GT511_PORT_ENTRY      apple_ttyUSB0
+//#  define GT511_PORT_ENROLL     apple_ttyUSB0
+//#  define GT511_PORT_EXIT       apple_ttyUSB1
+//#else
+//#  define GT511_PORT_ENTRY      ttyUSB0
+//#  define GT511_PORT_EXIT       ttyUSB1
+//#  define GT511_PORT_ENROLL     ttyUSB0
+//#endif
 
 //#define INTERCOM_START_DATE     12
 //#define INTERCOM_END_DATE       22
-
-
 
 #define COMMAND_PASSWORD        "sesame"
 #define COMMAND_YES             "yes"
@@ -83,13 +81,13 @@
 
 static volatile bool            sBlinkLoop;
 
-Scanner * gScanEntry = NULL; //new Scanner(GT511_PORT_ENTRY, false, "ENTRY", "Bienvenue,", EEventTypeEntry, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK);
-static Scanner * gScanExit = NULL; //new Scanner(GT511_PORT_EXIT, false, "EXIT", "A bientot,", EEventTypeExit, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK);
+static Scanner * gScanEntry = NULL;
+static Scanner * gScanExit = NULL;
 #define gScanEnroll gScanExit
-static Intercom * gScanIntercom = NULL;//new Intercom();
+static Intercom * gScanIntercom = NULL;
 
 #define BUFFER_LEN  256
-char sBuffer[256];
+char sBuffer[BUFFER_LEN];
 
 
 void getline() {
@@ -132,6 +130,9 @@ void init() {
     if(dic) {
         // hw config
         int FPS_BAUD = iniparser_getint(dic, "HW_CONFIG:FPS_BAUD", -1);
+        if(FPS_BAUD == -1) {
+            printf("***WARNING! Bad baud rate in config file.\n");
+        }
         char * COM_ENTRY = iniparser_getstring(dic, "HW_CONFIG:COM_ENTRY", NULL);
         char * COM_EXIT = iniparser_getstring(dic, "HW_CONFIG:COM_EXIT", NULL);
         char * STR_ENTRY = iniparser_getstring(dic, "HW_CONFIG:STR_ENTRY", NULL);
@@ -139,19 +140,54 @@ void init() {
         
         // pins
         int EPinLockRelay = iniparser_getint(dic, "HW_PINS:EPinLockRelay", -1);
+        if(EPinLockRelay == -1) {
+            printf("***WARNING! Bad EPinLockRelay in config file.\n");
+        }
         int EPinIntercomBuzzerIN = iniparser_getint(dic, "HW_PINS:EPinIntercomBuzzerIN", -1);
+        if(EPinIntercomBuzzerIN == -1) {
+            printf("***WARNING! Bad EPinIntercomBuzzerIN in config file.\n");
+        }
         int EPinIntercomBuzzerOUT = iniparser_getint(dic, "HW_PINS:EPinIntercomBuzzerOUT", -1);
+        if(EPinIntercomBuzzerOUT == -1) {
+            printf("***WARNING! Bad EPinIntercomBuzzerOUT in config file.\n");
+        }
         int EPinIntercomButtonOUT = iniparser_getint(dic, "HW_PINS:EPinIntercomButtonOUT", -1);
+        if(EPinIntercomButtonOUT == -1) {
+            printf("***WARNING! Bad EPinIntercomButtonOUT in config file.\n");
+        }
         int ELEDPinEntryOK = iniparser_getint(dic, "HW_PINS:ELEDPinEntryOK", -1);
+        if(ELEDPinEntryOK == -1) {
+            printf("***WARNING! Bad ELEDPinEntryOK in config file.\n");
+        }
         int ELEDPinEntryNOK = iniparser_getint(dic, "HW_PINS:ELEDPinEntryNOK", -1);
+        if(ELEDPinEntryNOK == -1) {
+            printf("***WARNING! Bad ELEDPinEntryNOK in config file.\n");
+        }
         int ELEDPinEntryWait = iniparser_getint(dic, "HW_PINS:ELEDPinEntryWait", -1);
+        if(ELEDPinEntryWait == -1) {
+            printf("***WARNING! Bad ELEDPinEntryWait in config file.\n");
+        }
         int ELEDPinExitOK = iniparser_getint(dic, "HW_PINS:ELEDPinExitOK", -1);
+        if(ELEDPinExitOK == -1) {
+            printf("***WARNING! Bad ELEDPinExitOK in config file.\n");
+        }
         int ELEDPinExitNOK = iniparser_getint(dic, "HW_PINS:ELEDPinExitNOK", -1);
+        if(ELEDPinExitNOK == -1) {
+            printf("***WARNING! Bad ELEDPinExitNOK in config file.\n");
+        }
         int ELEDPinExitWait = iniparser_getint(dic, "HW_PINS:ELEDPinExitWait", -1);
-        
+        if(ELEDPinExitWait == -1) {
+            printf("***WARNING! Bad ELEDPinExitWait in config file.\n");
+        }
         // other
         int INTERCOM_START = iniparser_getint(dic, "SW_CONFIG:INTERCOM_START", -1);
-        int INTERCOM_STOP = iniparser_getint(dic, "SW_CONFIG:INTERCOM_START", -1);
+        if(INTERCOM_START == -1) {
+            printf("***WARNING! Bad INTERCOM_START in config file.\n");
+        }
+        int INTERCOM_STOP = iniparser_getint(dic, "SW_CONFIG:INTERCOM_STOP", -1);
+        if(INTERCOM_STOP == -1) {
+            printf("***WARNING! Bad INTERCOM_STOP in config file.\n");
+        }
 
         char * STR_WELCOME = iniparser_getstring(dic, "SW_CONFIG:STR_WELCOME", NULL);
         char * STR_BYE = iniparser_getstring(dic, "SW_CONFIG:STR_BYE", NULL);
@@ -161,13 +197,29 @@ void init() {
         char * STR_DEFAULT1 = iniparser_getstring(dic, "SW_CONFIG:STR_DEFAULT1", NULL);
 
         int RELAY_INTERVAL_MS = iniparser_getint(dic, "SW_CONFIG:RELAY_INTERVAL_MS", -1);
+        if(RELAY_INTERVAL_MS == -1) {
+            printf("***WARNING! Bad RELAY_INTERVAL_MS in config file.\n");
+        }
         int HEARTBEAT_INTERVAL_MS = iniparser_getint(dic, "SW_CONFIG:HEARTBEAT_INTERVAL_MS", -1);
-        
+        if(HEARTBEAT_INTERVAL_MS == -1) {
+            printf("***WARNING! Bad HEARTBEAT_INTERVAL_MS in config file.\n");
+        }
         int INTERCOM_CHEAT_PRESS_NUM = iniparser_getint(dic, "SW_CONFIG:INTERCOM_CHEAT_PRESS_NUM", -1);
+        if(INTERCOM_CHEAT_PRESS_NUM == -1) {
+            printf("***WARNING! Bad INTERCOM_CHEAT_PRESS_NUM in config file.\n");
+        }
         int INTERCOM_CHEAT_PRESS_INTERVAL_MS = iniparser_getint(dic, "SW_CONFIG:INTERCOM_CHEAT_PRESS_INTERVAL_MS", -1);
+        if(INTERCOM_CHEAT_PRESS_INTERVAL_MS == -1) {
+            printf("***WARNING! Bad INTERCOM_CHEAT_PRESS_INTERVAL_MS in config file.\n");
+        }
         int INTERCOM_DO_BUZZER_MS = iniparser_getint(dic, "SW_CONFIG:INTERCOM_DO_BUZZER_MS", -1);
+        if(INTERCOM_DO_BUZZER_MS == -1) {
+            printf("***WARNING! Bad INTERCOM_DO_BUZZER_MS in config file.\n");
+        }
         int INTERCOM_DO_BUTTON_MS = iniparser_getint(dic, "SW_CONFIG:INTERCOM_DO_BUTTON_MS", -1);
-        
+        if(INTERCOM_DO_BUTTON_MS == -1) {
+            printf("***WARNING! Bad INTERCOM_DO_BUTTON_MS in config file.\n");
+        }
         gScanEntry = new Scanner(COM_ENTRY, FPS_BAUD, false, STR_ENTRY, STR_WELCOME, EEventTypeEntry, EPinLockRelay, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
         gScanExit = new Scanner(COM_EXIT, FPS_BAUD, false, STR_EXIT, STR_BYE, EEventTypeExit, EPinLockRelay, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
         gScanEntry->SetCommonStrings(STR_DEFAULT0, STR_DEFAULT1, STR_FORBIDDEN0, STR_FORBIDDEN1);

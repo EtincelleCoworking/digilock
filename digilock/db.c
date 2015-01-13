@@ -552,7 +552,7 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
     }
 
     size_t b64len = 0;
-    char * b64 = (char*)"";//base64_encode(aData, aDataLength + 1, &b64len);
+    char * b64 = (char*)base64_encode(aData, aDataLength + 1, &b64len);
     printf(b64);
     printf("\nlen=%d\n", b64len);
 
@@ -589,9 +589,9 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
 
         printf("req done\n");
     }
-    //printf("free...");
-    //free(b64);
-    //printf("free done\n");
+    printf("free...");
+    free(b64);
+    printf("free done\n");
 	return rc;
 }
 

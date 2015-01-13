@@ -65,11 +65,11 @@ void Intercom::SetCommonIntervals(int aCheatPressNum, int aCheatPressInterval, i
 
 
 void open_door(int aNumPresses) {
-    printf("OPEN DOOR START\n");
+    printf("OPEN INTERCOM START\n");
     digitalWrite(gPinIntercomButtonOUT, HIGH);
     usleep(gButtonMS * 1000);
     digitalWrite(gPinIntercomButtonOUT, LOW);
-    printf("OPEN DOOR STOP\n");
+    printf("OPEN INTERCOM STOP\n");
     db_insert_intercom_event(aNumPresses, true);
 }
 
@@ -195,17 +195,17 @@ void Intercom::SetEnabled(bool aEnabled) {
     if(_enabled == false) {
         // wait for thread to end
         if(0 != pthread_join(_thread, NULL)) {
-            printf("pthread_join error");
+            printf("pthread_join error\n");
         }
     }
     else {
         // loop
         if(0 != pthread_create(&_thread, NULL, loop_thread, this)) {
-            printf("pthread_create error");
+            printf("pthread_create error\n");
         }
     }
     
-    printf("INTERCOM: %s ", _enabled ? "ON" : "OFF");
+    printf("INTERCOM: %s\n", _enabled ? "ON" : "OFF");
     if(aEnabled) {
         if(_end_time == _start_time)
             printf("CHEAT CODE ALWAYS ON\n");
