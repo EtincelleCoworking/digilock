@@ -52,14 +52,6 @@ static char gLCDDefaultLine0[16+1]="";
 static char gLCDDefaultLine1[16+1]="";
 
 
-void Scanner::SetCommonStrings(char *aDefault0, char *aDefault1, char *aForbidden0, char *aForbidden1 ) {
-    strcpy(gLCDDefaultLine0, aDefault0);
-    strcpy(gLCDDefaultLine1, aDefault1);
-    strcpy(gLCDForbiddenLine0, aForbidden0);
-    strcpy(gLCDForbiddenLine1, aForbidden1);
-}
-
-
 static void * thread_open_relay(void * aIgnored) {
     printf("OPEN RELAY START\n");
     digitalWrite(gPinLockRelay, HIGH);
@@ -354,7 +346,6 @@ Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aNam
             sLCDInit = true;
             lcd_i2c_init(&sLCD);
             LCD_I2C_BACKLIGHT_ON(&sLCD);
-            lcd_default();
         }
     }
     wiringPiSetup();
@@ -362,6 +353,15 @@ Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aNam
     pinMode (_led_wait, OUTPUT);
     pinMode (_led_nok, OUTPUT);
 #endif
+}
+
+
+void Scanner::SetCommonStrings(char *aDefault0, char *aDefault1, char *aForbidden0, char *aForbidden1 ) {
+    strcpy(gLCDDefaultLine0, aDefault0);
+    strcpy(gLCDDefaultLine1, aDefault1);
+    strcpy(gLCDForbiddenLine0, aForbidden0);
+    strcpy(gLCDForbiddenLine1, aForbidden1);
+    lcd_default();
 }
 
 

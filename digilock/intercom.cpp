@@ -45,7 +45,7 @@ long long millis() {
 
 //#define LONGPRESS_ONLY
 
-static bool aLongpressOnly = true;
+static bool gLongpressOnly = true;
 static int gCheatPressNum;
 static int gCheatPressInterval;
 static int gBuzzerMS;
@@ -60,7 +60,7 @@ void Intercom::SetCommonIntervals(int aCheatPressNum, int aCheatPressInterval, i
     gCheatPressNum = aCheatPressNum;
     gButtonMS = aButtonMS;
     gBuzzerMS = aBuzzerMS;
-    aLongpressOnly = false;
+    gLongpressOnly = false;
 }
 
 
@@ -93,43 +93,51 @@ void loop_open() {
 void loop_cheat() {
     
     unsigned long ms = millis();
-    
+
     if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
-#ifdef LONGPRESS_ONLY
-        while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
-            // wait till buzz is unpressed
-            usleeo(10 * 1000);
-        }
-        
-        if(millis() - ms > gCheatPressInterval) {
-            // pressed long enough, open doors
-            open_door(-1);
-        }
-#else
-        unsigned char presses = 0;
-        bool pressed = false;
-        for (presses = 0; millis() - ms < gCheatPressInterval; ) {
+//#ifdef LONGPRESS_ONLY
+        if(gLongpressOnly) {
             while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
                 // wait till buzz is unpressed
-                usleep(10 * 1000); // debounce
-                pressed = true;
+                usleep(10 * 1000);
             }
-            
-            if(pressed) {
-                presses++;
-                pressed = false;
-                printf("%d PRESSES\n", presses);
+
+            if(millis() - ms > gCheatPressInterval) {
+                // pressed long enough, open doors
+                open_door(-1);
             }
+            else {
+                // not press long enough, make buzz ring
+                ring_buzzer(-1);
+            }
+//#else
         }
-        
-        if(presses == gCheatPressNum) {
-            // pressed the right number of times during the given interval, open doors
-            open_door(gCheatPressNum);
-        }
-#endif
         else {
-            // not press long enough, make buzz ring
-            ring_buzzer(presses);
+            unsigned char presses = 0;
+            bool pressed = false;
+            for (presses = 0; millis() - ms < gCheatPressInterval; ) {
+                while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
+                    // wait till buzz is unpressed
+                    usleep(10 * 1000); // debounce
+                    pressed = true;
+                }
+
+                if(pressed) {
+                    presses++;
+                    pressed = false;
+                    printf("%d PRESSES\n", presses);
+                }
+            }
+
+            if(presses == gCheatPressNum) {
+                // pressed the right number of times during the given interval, open doors
+                open_door(gCheatPressNum);
+            }
+            else {
+                // not press w/ correct code, make buzz ring
+                ring_buzzer(presses);
+            }
+//#endif
         }
     }
 }
