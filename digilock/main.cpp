@@ -580,7 +580,10 @@ int main() {
                 gScanExit->GetFPS()->DeleteAll();
 
                 int max_fgp = db_count_fingerprints();
-                for(int idx = 0; idx < max_fgp; idx++) {
+
+                printf("%d fingerprints in database.\n", max_fgp);
+
+                for(int idx = 0; idx <= max_fgp; idx++) {
                     byte * fgp = db_get_template(idx);
                     if(fgp != NULL) {
                         gScanEntry->GetFPS()->SetTemplate(fgp, idx, false);

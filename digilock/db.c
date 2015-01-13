@@ -138,10 +138,10 @@ sqlite3 * db_get_database() {
 int db_close() {
 	int ret = sqlite3_close(sDB);
 	if(ret != SQLITE_OK) {
-		fprintf(stderr, "Can't close database: %s\n", sqlite3_errmsg(sDB));
+        printf("Can't close database: %s\n", sqlite3_errmsg(sDB));
 	}
 	else {
-        fprintf(stdout, "Closed database successfully\n");
+        printf("Closed database successfully\n");
 	}
 
 	return ret;
@@ -226,10 +226,10 @@ int db_open(char * aDatabaseFile) {
     rc = sqlite3_open(aDatabaseFile, &sDB);
     
 	if( rc ) {
-		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(sDB));
+        printf("Can't open database: %s\n", sqlite3_errmsg(sDB));
 		return -1;
 	} else {
-        fprintf(stdout, "Opened database %s successfully\n", aDatabaseFile);
+        printf( "Opened database %s successfully\n", aDatabaseFile);
 	}
 
 	/* Create tables */
@@ -248,7 +248,7 @@ int db_open(char * aDatabaseFile) {
 		 "CREATE TABLE IF NOT EXISTS %s ("  \
          "%s INT PRIMARY KEY NOT NULL," \
          "%s INT," \
-         "%s VARCHAR(1024));",
+         "%s TEXT);",
          TABLE_FGP,
          TABLE_FGP_ID,
          TABLE_FGP_CHECKSUM,
@@ -366,7 +366,7 @@ int db_get_user_id(char * aEmail) {
 
     sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
     if (sqlite3_step(stmt) == SQLITE_ERROR) {
-        fprintf(stderr, "SQL error:  %s\n", sqlite3_errmsg(sDB));
+        printf("SQL error:  %s\n", sqlite3_errmsg(sDB));
     } else {
         int count = sqlite3_data_count(stmt);
         if(count > 0)
@@ -400,32 +400,48 @@ uint8_t * db_get_template(int aFingerprintID) {
     sqlite3_mutex_enter(sqlite3_db_mutex(sDB));
     sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
     if (sqlite3_step(stmt) == SQLITE_ERROR) {
-        fprintf(stderr, "SQL error:  %s\n", sqlite3_errmsg(sDB));
+        printf("SQL error:  %s\n", sqlite3_errmsg(sDB));
     } else {
         int count = sqlite3_data_count(stmt);
+
         if(count > 0) {
             b64 = (const char *)sqlite3_column_text(stmt, 0);
+
+            //printf("db_get_template b64 %s len %d\n", b64, strlen(b64));
+
             checksum = sqlite3_column_int(stmt, 1);
+
+            //printf("db_get_template chk %d\n", checksum);
         }
     }
-    sqlite3_finalize(stmt);
-    sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
 
     if(b64 != NULL) {
         size_t template_len = 0;
-        fgp = base64_decode(b64, strlen(b64), &template_len);
+        fgp = base64_decode(b64, 664 /* WTF !!! */, &template_len);
+
+        //printf("db_get_template decode %d bytes from %d bytes\n", template_len, strlen(b64));
+
         if(fgp != NULL) {
             int i;
             int calc_checksum = 0;
             for(i = 0; i < template_len; i++) {
                 calc_checksum += fgp[i];
             }
+
+            //printf("db_get_template fgp not null\n");
+
             if(checksum != calc_checksum) {
                 free(fgp);
                 fgp = NULL;
+                printf("db_get_template bad checksum (%d; %d)\n", checksum, calc_checksum);
+
             }
         }
     }
+
+    sqlite3_finalize(stmt);
+    sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
+
 
     return fgp;
 }
@@ -467,7 +483,7 @@ const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
         sqlite3_mutex_enter(sqlite3_db_mutex(sDB));
         sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
         if (sqlite3_step(stmt) == SQLITE_ERROR) {
-            fprintf(stderr, "SQL error:  %s\n", sqlite3_errmsg(sDB));
+            printf("SQL error:  %s\n", sqlite3_errmsg(sDB));
         } else {
             int count = sqlite3_data_count(stmt);
             if(count > 0) {
@@ -496,7 +512,7 @@ int db_count(char * aTableName) {
         aTableName);
     sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
     if (sqlite3_step(stmt) == SQLITE_ERROR) {
-        fprintf(stderr, "SQL error:  %s\n", sqlite3_errmsg(sDB));
+        printf("SQL error:  %s\n", sqlite3_errmsg(sDB));
     } else {
         rows = sqlite3_column_int(stmt, 0);
     }
@@ -569,8 +585,8 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
 
     size_t b64len = 0;
     char * b64 = (char*)base64_encode(aData, aDataLength, &b64len);
-    //printf(b64);
-    //printf("\nlen=%d\n", b64len);
+    printf(b64);
+    printf("\nchk=%d len=%d\n", checksum, b64len);
 
 
 //    printf("\nUnbase64:\n");
