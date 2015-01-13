@@ -1,5 +1,5 @@
 //
-//  io.cpp
+//  intercom.cpp
 //  digilock
 //
 //  Created by Olivier Huguenot on 26/12/2014.
@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#include "io.h"
+#include "intercom.h"
 
 
 #ifdef __APPLE__
@@ -84,7 +84,7 @@ void ring_buzzer(int aNumPresses) {
 
 
 void loop_open() {
-    while (digitalRead(EPinIntercomBuzzerIN) == HIGH) {
+    while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
         open_door(-1);
     }
 }
@@ -94,9 +94,9 @@ void loop_cheat() {
     
     unsigned long ms = millis();
     
-    if(digitalRead(EPinIntercomBuzzerIN) == HIGH) {
+    if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
 #ifdef LONGPRESS_ONLY
-        while (digitalRead(EPinIntercomBuzzerIN) == HIGH) {
+        while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
             // wait till buzz is unpressed
             usleeo(10 * 1000);
         }
@@ -109,7 +109,7 @@ void loop_cheat() {
         unsigned char presses = 0;
         bool pressed = false;
         for (presses = 0; millis() - ms < gCheatPressInterval; ) {
-            while (digitalRead(EPinIntercomBuzzerIN) == HIGH) {
+            while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
                 // wait till buzz is unpressed
                 usleep(10 * 1000); // debounce
                 pressed = true;

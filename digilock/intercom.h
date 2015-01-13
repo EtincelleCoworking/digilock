@@ -1,5 +1,5 @@
 //
-//  io.h
+//  intercom.h
 //  digilock
 //
 //  Created by Olivier on 29/12/2014.

@@ -192,9 +192,9 @@ void lcd_default() {
 #ifndef __APPLE__
     lcd_i2c_clear(&sLCD);
     lcd_i2c_gotoxy(&sLCD, 0, 0);
-    lcd_i2c_puts(&sLCD, LCD_DEFAULT_LINE_0);
+    lcd_i2c_puts(&sLCD, gLCDDefaultLine0);
     lcd_i2c_gotoxy(&sLCD, 0, 1);
-    lcd_i2c_puts(&sLCD, LCD_DEFAULT_LINE_1);
+    lcd_i2c_puts(&sLCD, gLCDDefaultLine1);
 #endif
 }
 
@@ -219,7 +219,7 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
         lcd_i2c_puts(&sLCD, aLine0);
     }
     else {
-        lcd_i2c_puts(&sLCD, _welcome);
+        lcd_i2c_puts(&sLCD, _message);
     }
     lcd_i2c_gotoxy(&sLCD, 0, 1);
     if(aLine1) {

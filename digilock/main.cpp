@@ -21,7 +21,7 @@
 #include "FPS_GT511Linux.h"
 #include "db.h"
 #include "req.h"
-#include "io.h"
+#include "intercom.h"
 #include "scanner.h"
 #include <stdio.h>
 #include <sys/types.h>

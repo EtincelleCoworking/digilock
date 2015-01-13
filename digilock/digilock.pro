@@ -22,7 +22,9 @@ SOURCES += main.cpp \
     db.c \
     bitmap.c \
     scanner.cpp \
-    io.cpp
+    dictionary.c \
+    iniparser.c \
+    intercom.cpp
 
 HEADERS += \
     rs232.h \
@@ -32,12 +34,15 @@ HEADERS += \
     db.h \
     bitmap.h \
     scanner.h \
-    io.h \
-    base64.h
+    base64.h \
+    dictionary.h \
+    iniparser.h \
+    intercom.h
 
 
 unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += libcurl
 unix: PKGCONFIG += sqlite3
 
-OTHER_FILES +=
+OTHER_FILES += \
+    config.ini

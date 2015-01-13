@@ -14,6 +14,10 @@
 #ifndef _DICTIONARY_H_
 #define _DICTIONARY_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*---------------------------------------------------------------------------
                                 Includes
  ---------------------------------------------------------------------------*/
@@ -161,5 +165,9 @@ void dictionary_unset(dictionary * d, const char * key);
  */
 /*--------------------------------------------------------------------------*/
 void dictionary_dump(dictionary * d, FILE * out);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

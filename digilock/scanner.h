@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include "db.h"
-#include "io.h"
+//#include "io.h"
 #include "req.h"
 #include "FPS_GT511Linux.h"
 #ifndef __APPLE__
