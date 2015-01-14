@@ -103,8 +103,9 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
 int db_delete_user_data(int aUserID, bool aDeleteUser);
 int db_drop_tables();
 const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail);
-uint8_t * db_get_template(int aFingerprintID);
-    
+uint8_t * db_get_fingerprint(int aFingerprintID);
+//int db_delete_fingerprints();
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

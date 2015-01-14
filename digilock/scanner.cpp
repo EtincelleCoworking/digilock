@@ -39,7 +39,7 @@ static volatile bool sLCDInit = false;
 #else
 #  define HIGH 1
 #  define LOW 0
-# define digitalWrite(p, i)  printf("digitalWrite pin %d value %d\n", p, i)
+# define digitalWrite(p, i)  //printf("digitalWrite pin %d value %d\n", p, i)
 #endif
 
 

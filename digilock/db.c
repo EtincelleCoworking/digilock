@@ -26,113 +26,13 @@
 #include <stdint.h>
 #include <sys/time.h>
 #include <string.h>
-
-
-static char encoding_table[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-                                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                                'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-                                'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-                                'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-                                'w', 'x', 'y', 'z', '0', '1', '2', '3',
-                                '4', '5', '6', '7', '8', '9', '+', '/'};
-static char *decoding_table = NULL;
-static int mod_table[] = {0, 2, 1};
-
-void build_decoding_table() {
-
-    decoding_table = (char*)malloc(256);
-int i;
-    for (i = 0; i < 64; i++)
-        decoding_table[(unsigned char) encoding_table[i]] = i;
-}
-
-
-void base64_cleanup() {
-    free(decoding_table);
-}
-
-char *base64_encode(const unsigned char *data,
-                    size_t input_length,
-                    size_t *output_length) {
-
-    *output_length = 4 * ((input_length + 2) / 3);
-
-    char *encoded_data = (char*)malloc(*output_length);
-    if (encoded_data == NULL) return NULL;
-int i,j;
-    for (i = 0, j = 0; i < input_length;) {
-
-        uint32_t octet_a = i < input_length ? (unsigned char)data[i++] : 0;
-        uint32_t octet_b = i < input_length ? (unsigned char)data[i++] : 0;
-        uint32_t octet_c = i < input_length ? (unsigned char)data[i++] : 0;
-
-        uint32_t triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
-
-        encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
-        encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
-    }
-
-    for (i = 0; i < mod_table[input_length % 3]; i++)
-        encoded_data[*output_length - 1 - i] = '=';
-
-    return encoded_data;
-}
-
-
-unsigned char *base64_decode(const char *data,
-                             size_t input_length,
-                             size_t *output_length) {
-
-    if (decoding_table == NULL) build_decoding_table();
-
-    if (input_length % 4 != 0) return NULL;
-
-    *output_length = input_length / 4 * 3;
-    if (data[input_length - 1] == '=') (*output_length)--;
-    if (data[input_length - 2] == '=') (*output_length)--;
-
-    unsigned char *decoded_data = (unsigned char*)malloc(*output_length);
-    if (decoded_data == NULL) return NULL;
-int i,j;
-    for (i = 0, j = 0; i < input_length;) {
-
-        uint32_t sextet_a = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_b = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_c = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-        uint32_t sextet_d = data[i] == '=' ? 0 & i++ : decoding_table[data[i++]];
-
-        uint32_t triple = (sextet_a << 3 * 6)
-        + (sextet_b << 2 * 6)
-        + (sextet_c << 1 * 6)
-        + (sextet_d << 0 * 6);
-
-        if (j < *output_length) decoded_data[j++] = (triple >> 2 * 8) & 0xFF;
-        if (j < *output_length) decoded_data[j++] = (triple >> 1 * 8) & 0xFF;
-        if (j < *output_length) decoded_data[j++] = (triple >> 0 * 8) & 0xFF;
-    }
-
-    return decoded_data;
-}
-
-
-
+#include "base64.h"
 
 static sqlite3 * sDB;
 
 sqlite3 * db_get_database() {
     return sDB;
 }
-
-
-//long long db_timestamp() {
-//    struct timeval te;
-//    gettimeofday(&te, NULL); // get current time
-//    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
-//    return milliseconds;
-//}
 
 
 int db_close() {
@@ -146,16 +46,6 @@ int db_close() {
 
 	return ret;
 }
-
-
-//static int exec_callback(void *NotUsed, int argc, char **argv, char **azColName){
-//	int i;
-//	for(i = 0; i < argc; i++){
-//		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-//	}
-//	printf("\n");
-//	return 0;
-//}
 
 
 int alert(const char * aSubject, char * aMessage, EDBAlert aLevel) {
@@ -380,14 +270,17 @@ int db_get_user_id(char * aEmail) {
 }
 
 
-uint8_t * db_get_template(int aFingerprintID) {
+uint8_t * db_get_fingerprint(int aFingerprintID) {
 
-    const char * b64 = NULL;
+    char * b64 = NULL;
+    //uint8_t * blob = NULL;
+    int b64_len = 0;
+    int fgp_len = 0;
     char sql[256];
     sqlite3_stmt * stmt;
     uint8_t * fgp = NULL;
     int checksum = 0;
-    bool ok = false;
+  //  bool ok = false;
 
     sprintf(sql,
         "SELECT %s, %s FROM %s WHERE %s = %d;",
@@ -403,28 +296,25 @@ uint8_t * db_get_template(int aFingerprintID) {
         printf("SQL error:  %s\n", sqlite3_errmsg(sDB));
     } else {
         int count = sqlite3_data_count(stmt);
-
         if(count > 0) {
-            b64 = (const char *)sqlite3_column_text(stmt, 0);
-
+            b64 = (char *)sqlite3_column_text(stmt, 0);
+            b64_len = sqlite3_column_bytes(stmt, 0);
             //printf("db_get_template b64 %s len %d\n", b64, strlen(b64));
-
             checksum = sqlite3_column_int(stmt, 1);
-
             //printf("db_get_template chk %d\n", checksum);
         }
     }
 
     if(b64 != NULL) {
-        size_t template_len = 0;
-        fgp = base64_decode(b64, 664 /* WTF !!! */, &template_len);
+        
+        fgp = unbase64(b64, b64_len /* WTF !!! */, &fgp_len);
 
         //printf("db_get_template decode %d bytes from %d bytes\n", template_len, strlen(b64));
 
-        if(fgp != NULL) {
+        //if(fgp != NULL) {
             int i;
             int calc_checksum = 0;
-            for(i = 0; i < template_len; i++) {
+            for(i = 0; i < fgp_len; i++) {
                 calc_checksum += fgp[i];
             }
 
@@ -436,7 +326,7 @@ uint8_t * db_get_template(int aFingerprintID) {
                 printf("db_get_template bad checksum (%d; %d)\n", checksum, calc_checksum);
 
             }
-        }
+        //}
     }
 
     sqlite3_finalize(stmt);
@@ -558,14 +448,17 @@ int db_insert_user(char * aEmail, char * aNick) {
 }
 
 
-//static void * thr_insert_fgp(void * data) {
-//    char * sql = (char *)data;
-//    printf("exec %s\n", sql);
-//   int rc = exec(sql, true, EDBAlertError);
-//    free(sql);
-//    printf("sql thread done %d\n", rc);
+//int db_delete_fingerprints() {
+//    int rc;
+//    char sql[256];
+//    
+//    sprintf(sql,
+//            "DELETE FROM %s;",
+//            TABLE_FGP);
+//    
+//    rc = exec(sql, true, EDBAlertError);
+//    return rc;
 //}
-
 
 
 int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int aDataLength) {
@@ -577,64 +470,55 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
         checksum += aData[i];
     }
 
-//    printf("FGP data (len: %d, chk: %d):\n", aDataLength, checksum);
-//    for(i = 0; i < aDataLength; i++) {
-//        printf("%.02x ", aData[i]);
-//    }
-//    printf("\nBase64:\n");
-
-    size_t b64len = 0;
-    char * b64 = (char*)base64_encode(aData, aDataLength, &b64len);
-    printf(b64);
-    printf("\nchk=%d len=%d\n", checksum, b64len);
+    int b64len = 0;
+    char * b64 = base64(aData, aDataLength, &b64len);
+    char * sql = (char *)malloc(b64len + 256);
 
 
-//    printf("\nUnbase64:\n");
-//    size_t unb64len;
-//    uint8_t * unb64 = base64_decode(b64, b64len, &unb64len);
-//    for(i = 0; i < unb64len; i++) {
-//        printf("%.02x ", unb64[i]);
-
-//        if(unb64[i] != aData[i]) {
-//            printf("Encode/decode error\n");
-//            break;
-//        }
-//    }
-//    printf("\nlen: %d\n", unb64len);
-
-
-//    size_t datasz = 1 + (aDataLength * 3);
-//    char * data =  (char *) malloc(datasz);
-//    memset(data, 0, datasz);
-//    char buf[3];
-//    for(i = 0; i < aDataLength; i++) {
-//        sprintf(buf, "%.02x ", aData[i]);
-//        strcat(data, buf);
-//    }
-//    printf("%s\n", data);
-
-    char * sql = (char *) malloc(strlen(b64) + 256);
-
-
-	// insert fgp
-	sprintf(sql,
-		"INSERT INTO %s (%s, %s, %s) " \
-        "VALUES (%d, '%s', %d);",
-        TABLE_FGP,
-        TABLE_FGP_ID,
-        TABLE_FGP_DATA,
-        TABLE_FGP_CHECKSUM,
-		aFingerprintID,
-        b64,
-        checksum);
+	// insert or update fgp ?
+    bool exists = false;
+    sprintf(sql, "SELECT COUNT(*) FROM %s WHERE %s = %d;",
+            TABLE_FGP,
+            TABLE_FGP_ID,
+            aFingerprintID);
+    sqlite3_stmt * stmt;
+    sqlite3_mutex_enter(sqlite3_db_mutex(sDB));
+    sqlite3_prepare(sDB, sql, (int)strlen(sql) + 1, &stmt, NULL);
+    if (sqlite3_step(stmt) == SQLITE_ERROR) {
+        printf("SQL error:  %s\n", sqlite3_errmsg(sDB));
+    } else {
+        exists = !!sqlite3_data_count(stmt);
+    }
+    sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
+    
+    if(exists) {
+        sprintf(sql,
+            "UPDATE %s SET %s = '%s', %s = %d" \
+            " WHERE %s = %d;",
+            TABLE_FGP,
+            TABLE_FGP_DATA,
+            b64,
+            TABLE_FGP_CHECKSUM,
+            checksum,
+            TABLE_FGP_ID,
+            aFingerprintID);
+    }
+    else {
+        sprintf(sql,
+            "INSERT INTO %s (%s, %s, %s) " \
+            "VALUES (%d, '%s', %d);",
+            TABLE_FGP,
+            TABLE_FGP_ID,
+            TABLE_FGP_DATA,
+            TABLE_FGP_CHECKSUM,
+            aFingerprintID,
+            b64,
+            checksum);
+    }
     rc = exec(sql, true, EDBAlertError);
-
-    //char * msql = (char *)malloc(strlen(sql)+1);
-    //strcpy(msql, sql);
-
-    //pthread_t thr;
-    //pthread_create(&thr, NULL, thr_insert_fgp, msql);
-    //printf("insert fgp w/ %d\n", rc);
+    
+    
+    
 
     // link user <=> fgp
 	sprintf(sql,
@@ -645,7 +529,7 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
         TABLE_USER_FGP_UID,
 		aFingerprintID,
 		aUserID);
-	rc = exec(sql, true, EDBAlertError);
+	rc |= exec(sql, true, EDBAlertError);
     //printf("link fgp w/ %d\n", rc);
 
     if(rc == SQLITE_OK) {

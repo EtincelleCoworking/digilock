@@ -37,19 +37,6 @@
 #  include <pthread.h>
 #endif
 
-//#ifdef __APPLE__
-//#  define GT511_PORT_ENTRY      apple_ttyUSB0
-//#  define GT511_PORT_ENROLL     apple_ttyUSB0
-//#  define GT511_PORT_EXIT       apple_ttyUSB1
-//#else
-//#  define GT511_PORT_ENTRY      ttyUSB0
-//#  define GT511_PORT_EXIT       ttyUSB1
-//#  define GT511_PORT_ENROLL     ttyUSB0
-//#endif
-
-//#define INTERCOM_START_DATE     12
-//#define INTERCOM_END_DATE       22
-
 #define COMMAND_PASSWORD        "sesame"
 #define COMMAND_YES             "yes"
 
@@ -80,14 +67,12 @@
 
 
 static volatile bool            sBlinkLoop;
-
-static Scanner * gScanEntry = NULL;
-static Scanner * gScanExit = NULL;
-#define gScanEnroll gScanExit
-static Intercom * gScanIntercom = NULL;
-
-#define BUFFER_LEN  256
-char sBuffer[BUFFER_LEN];
+static Scanner *                gScanEntry =        NULL;
+static Scanner *                gScanExit =         NULL;
+static Intercom *               gScanIntercom =     NULL;
+#define                         gScanEnroll         gScanExit
+#define                         BUFFER_LEN          256
+char                            sBuffer[BUFFER_LEN];
 
 
 void getline() {
@@ -269,12 +254,12 @@ int enroll(int aUserID) {
     // ask for user ID
     printf("Welcome to user creation and enrollment.\n");
     if(aUserID == -1) {
-        char nick[16];
+        char nick[16 + 1] = "";
         do {
             printf("Please input a 16-character-max (nick)name: ");
             getline();
-            strcpy(nick, sBuffer);
-        } while(strlen(nick) > 16);
+        } while(strlen(sBuffer) > 16);
+        strcpy(nick, sBuffer);
         printf("Please input user email and press return: ");
         getline();
         aUserID = db_get_user_id(sBuffer);
@@ -346,10 +331,7 @@ int enroll(int aUserID) {
 
                                     printf("Template uploaded, updating database...\n");
                                     db_insert_fingerprint(aUserID, enrollid, buf, TEMPLATE_DATA_LEN);
-                                    printf("fingerprint inserted...\n");
                                     db_insert_fingerprint_event(enrollid, 0, EEventTypeEnroll, true);
-                                    printf("event inserted...\n");
-
 
                                     // =============================
                                     // SUCCESS !!!
@@ -583,8 +565,8 @@ int main() {
 
                 printf("%d fingerprints in database.\n", max_fgp);
 
-                for(int idx = 0; idx <= max_fgp; idx++) {
-                    byte * fgp = db_get_template(idx);
+                for(int idx = 0; idx < max_fgp; idx++) {
+                    byte * fgp = db_get_fingerprint(idx);
                     if(fgp != NULL) {
                         gScanEntry->GetFPS()->SetTemplate(fgp, idx, false);
                         gScanExit->GetFPS()->SetTemplate(fgp, idx, false);
