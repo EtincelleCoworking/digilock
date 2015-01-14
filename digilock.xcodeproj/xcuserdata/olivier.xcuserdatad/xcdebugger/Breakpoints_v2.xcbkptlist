@@ -41,22 +41,6 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "digilock/main.cpp"
-            timestampString = "442925446.015013"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "570"
-            endingLineNumber = "570"
-            landmarkName = "main()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "digilock/db.c"
             timestampString = "442925442.328667"
             startingColumnNumber = "9223372036854775807"
@@ -73,14 +57,14 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "digilock/db.c"
-            timestampString = "442925444.546935"
+            filePath = "digilock/FPS_GT511Linux.cpp"
+            timestampString = "442926726.42775"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "480"
-            endingLineNumber = "480"
-            landmarkName = "db_insert_fingerprint()"
-            landmarkType = "7">
+            startingLineNumber = "414"
+            endingLineNumber = "414"
+            landmarkName = "FPS_GT511::GetEnrollCount()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

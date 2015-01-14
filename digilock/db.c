@@ -349,8 +349,6 @@ const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
             TABLE_USER,
             TABLE_USER_ID,
             aUserID);
-
-        printf("%s\n", sql);
     }
     else if(aFingerprintID >= 0) {
         sprintf(sql,
@@ -362,8 +360,6 @@ const char * db_get_user_name(int aUserID, int aFingerprintID, bool aEmail) {
             TABLE_USER_FGP,
             TABLE_USER_FGP_FID,
             aFingerprintID);
-
-        printf("%s\n", sql);
     }
     else {
         valid_params = false;
@@ -487,7 +483,7 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
     if (sqlite3_step(stmt) == SQLITE_ERROR) {
         printf("SQL error:  %s\n", sqlite3_errmsg(sDB));
     } else {
-        exists = !!sqlite3_data_count(stmt);
+        exists = !!sqlite3_column_int(stmt, 0);
     }
     sqlite3_mutex_leave(sqlite3_db_mutex(sDB));
     
@@ -516,9 +512,6 @@ int db_insert_fingerprint(int aUserID, int aFingerprintID, uint8_t * aData, int 
             checksum);
     }
     rc = exec(sql, true, EDBAlertError);
-    
-    
-    
 
     // link user <=> fgp
 	sprintf(sql,

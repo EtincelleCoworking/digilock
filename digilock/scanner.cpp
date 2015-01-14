@@ -193,7 +193,7 @@ void lcd_default() {
 
 static void * thread_shut_lcd(void * aScanner) {
     usleep(2000 * 1000);
-    printf("shut lcd\n");
+//    printf("shut lcd\n");
     lcd_default();
     return NULL;
 }
