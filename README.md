@@ -1,46 +1,46 @@
 
 Start or stop a communication test: fingerprint modules should blink<br/>
-blink start<br/>
+<b>blink start<br/>
 blink stop<br/>
-<br/>
+</b><br/>
 Quit the program<br/>
-quit<br/>
-<br/>
+<b>quit<br/>
+</b><br/>
 Stop scanning threads and enroll a new user<br/>
-enroll<br/>
-<br/>
+<b>enroll<br/>
+</b><br/>
 Count the number of registered fingerprints on the devices<br/>
-count<br/>
-<br/>
+<b>count<br/>
+</b><br/>
 Start or stop entry or exit scan thread<br/>
-entry stop<br/>
+<b>entry stop<br/>
 exit stop<br/>
 entry start<br/>
 exit start<br/>
-<br/>
+</b><br/>
 Start or stop intercom scan thread<br/>
-intercom stop<br/>
+<b>intercom stop<br/>
 intercom start<br/>
-<br/>
+</b><br/>
 Dumps the fingerprint data to the current path<br/>
-dump entry<br/>
+<b>dump entry<br/>
 dump exit<br/>
-<br/>
+</b><br/>
 Creates a new user<br/>
-create user<br/>
-<br/>
+<b>create user<br/>
+</b><br/>
 Delete all fingerprints from the devices (will not touch the database)<br/>
-delete all fingerprints<br/>
-<br/>
+<b>delete all fingerprints<br/>
+</b><br/>
 Delete a single fingerprint<br/>
-delete fingerprint<br/>
-<br/>
+<b>delete fingerprint<br/>
+</b><br/>
 Delete a user with its fingerprint data<br/>
-delete user<br/>
-<br/>
+<b>delete user<br/>
+</b><br/>
 Copy exit fingerprint to entry fingerprint<br/>
-sync fingerprints<br/>
-<br/>
+<b>sync fingerprints<br/>
+</b><br/>
 Delete then reload the fingerprints from the database<br/>
-reload fingerprints<br/>
-<br/>
+<b>reload fingerprints<br/>
+</b><br/>
