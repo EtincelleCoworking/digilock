@@ -84,7 +84,7 @@ void ring_buzzer(int aNumPresses) {
 
 
 void loop_open() {
-    while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
+    if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
         open_door(-1);
     }
 }
@@ -95,7 +95,6 @@ void loop_cheat() {
     unsigned long ms = millis();
 
     if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
-//#ifdef LONGPRESS_ONLY
         if(gLongpressOnly) {
             while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
                 // wait till buzz is unpressed
@@ -110,7 +109,6 @@ void loop_cheat() {
                 // not press long enough, make buzz ring
                 ring_buzzer(-1);
             }
-//#else
         }
         else {
             unsigned char presses = 0;
@@ -137,7 +135,6 @@ void loop_cheat() {
                 // not press w/ correct code, make buzz ring
                 ring_buzzer(presses);
             }
-//#endif
         }
     }
 }
@@ -148,7 +145,7 @@ void * loop_thread(void * aIntercom) {
     while(intercom->IsEnabled()) {
         time_t t = time(NULL);
         struct tm timez = *localtime(&t);
-        if(timez.tm_hour > intercom->GetStartTime() && timez.tm_hour < intercom->GetEndTime()) {
+        if(timez.tm_hour >= intercom->GetStartTime() && timez.tm_hour <= intercom->GetEndTime()) {
             loop_open();
         }
         else {
@@ -213,7 +210,3 @@ void Intercom::SetEnabled(bool aEnabled) {
             printf("FREE OPEN START TIME %.2d:00 / END TIME %.2d:00\n", _start_time, _end_time);
     }
 }
-
-
-
-
