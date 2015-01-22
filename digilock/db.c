@@ -48,9 +48,11 @@ int db_close() {
 }
 
 
-int alert(const char * aSubject, char * aMessage, EDBAlert aLevel) {
+int alert(const char * aSubject, char * aMessage, EDBAlert aLevel, int aCode) {
 	// TODO:
-    printf("***ALERT LEVEL %d:\n%s\n%s\n", aLevel, aSubject, aMessage);
+    printf("***ALERT LEVEL %d:\n%s\n%s\nCode:%d\n", aLevel, aSubject, aMessage, aCode);
+    printf("***ALERT MESSAGE :\n%s\n", sqlite3_errmsg(sDB));
+
 	return 0;
 }
 
@@ -64,8 +66,8 @@ static int exec(char * aSQL, bool aCommit, EDBAlert aAlertLevel) {
 
 	if(aCommit) {
 		rc = sqlite3_exec(sDB, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-		if(rc != SQLITE_OK ){
-			alert("BEGIN TRANSACTION FAILED", aSQL, aAlertLevel);
+        if(rc != SQLITE_OK ) {
+            alert("BEGIN TRANSACTION FAILED", aSQL, aAlertLevel, rc);
 			return rc;
 		}
 	}
@@ -73,14 +75,14 @@ static int exec(char * aSQL, bool aCommit, EDBAlert aAlertLevel) {
 	rc = sqlite3_exec(sDB, aSQL, NULL, 0, &zErrMsg);
 	if(rc != SQLITE_OK ){
         printf("SQL error: %s\n", zErrMsg);
-		alert(aSQL, zErrMsg, aAlertLevel);
+        alert(aSQL, zErrMsg, aAlertLevel, rc);
 		sqlite3_free(zErrMsg);
 	} else {
         //printf("SQL OK: %s\n", aSQL);
 		if(aCommit) {
 			rc = sqlite3_exec(sDB, "END TRANSACTION;", NULL, NULL, NULL);
-			if(rc != SQLITE_OK ){
-				alert("END TRANSACTION FAILED", aSQL, aAlertLevel);
+            if(rc != SQLITE_OK ) {
+                alert("END TRANSACTION FAILED", aSQL, aAlertLevel, rc);
 				return rc;
 			}
 		}
