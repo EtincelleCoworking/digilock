@@ -20,8 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "scanner.h"
 
-static char sMode[] =   {'8', 'N', '1', 0};
-static volatile bool sLCDInit = false;
+static char             sMode[] =   {'8', 'N', '1', 0};
+static volatile bool    sLCDInit =  false;
+static pthread_mutex_t  sLCDMutex;
 
 #ifndef __APPLE__
     lcd_i2c_t sLCD = {0};
@@ -190,8 +191,9 @@ static void * thread_shut_lcd(void * aScanner) {
 
 void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
 #ifndef __APPLE__
-    printf("LCD 0: %s|\n", aLine0);
-    printf("LCD 1: %s|\n", aLine1);
+//    printf("LCD 0: %s|\n", aLine0);
+//    printf("LCD 1: %s|\n", aLine1);
+    pthread_mutex_lock(&sLCDMutex);
 
     lcd_i2c_clear(&sLCD);
     lcd_i2c_gotoxy(&sLCD, 0, 0);
@@ -206,6 +208,7 @@ void Scanner::ShowLCDMessage(const char * aLine0, const char * aLine1) {
     if(aLine1) {
         lcd_i2c_puts(&sLCD, aLine1);
     }
+    pthread_mutex_unlock(&sLCDMutex);
 #endif
     pthread_create(&_lcd_thread, NULL, thread_shut_lcd, this);
 }
@@ -218,7 +221,7 @@ static void * thread_shut_leds(void * aScanner) {
     Scanner * scanner = (Scanner *)aScanner;
     scanner->ShutdownLEDs();
 //    scanner->StopLCDThread();
-    printf("led thread stop\n");
+//    printf("led thread stop\n");
     pthread_exit(NULL);
 
 }
@@ -236,7 +239,6 @@ void Scanner::ShutdownLEDs() {
 
 void Scanner::Heartbeat() {
     static long long ts = millisecs();
-
     if(millisecs() - ts > gHeartbeatIntervalMS) {
 
         digitalWrite(_led_ok, HIGH);
@@ -332,6 +334,7 @@ Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aNam
 
         }
         else {
+            pthread_mutex_init(&sLCDMutex, NULL);
             sLCDInit = true;
             lcd_i2c_init(&sLCD);
             LCD_I2C_BACKLIGHT_ON(&sLCD);
@@ -362,6 +365,7 @@ Scanner::~Scanner() {
 #ifndef __APPLE__
         lcd_i2c_clear(&sLCD);
         LCD_I2C_BACKLIGHT_OFF(&sLCD);
+        pthread_mutex_destroy(&sLCDMutex);
 #endif
     }
 }

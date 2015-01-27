@@ -45,6 +45,7 @@
 #define COMMAND_BLINK_STOP      "blink stop"
 
 #define COMMAND_QUIT            "quit"
+#define COMMAND_RESTART         "restart"
 #define COMMAND_ENROLL          "enroll"
 #define COMMAND_COUNT           "count"
 #define COMMAND_ENTRY_STOP      "entry stop"
@@ -66,14 +67,15 @@
 #define COMMAND_RELOAD          "reload fingerprints"
 
 
-static volatile bool            sBlinkLoop;
-static Scanner *                gScanEntry =        NULL;
-static Scanner *                gScanExit =         NULL;
-static Intercom *               gScanIntercom =     NULL;
-#define                         gScanEnroll         gScanExit
-#define                         BUFFER_LEN          256
-char                            sBuffer[BUFFER_LEN];
-
+static volatile bool            sBlinkLoop =            false;
+static Scanner *                gScanEntry =            NULL;
+static Scanner *                gScanExit =             NULL;
+static Intercom *               gScanIntercom =         NULL;
+#define                         gScanEnroll             gScanExit
+#define                         BUFFER_LEN              256
+char                            sBuffer[BUFFER_LEN] =   "";
+static long long                gWatchdogTS =           0;
+static int                      gWatchdogIntervalMS =   0;
 
 void getline() {
     fgets(sBuffer, BUFFER_LEN, stdin);
@@ -89,28 +91,31 @@ void getline() {
 }
 
 
-void quit(int aIgnored) {
+void cleanup() {
     // close libcurl + sqlite
     req_cleanup();
     db_close();
-    
+
     // stop scans
     gScanEntry->SetEnabled(false);
     gScanExit->SetEnabled(false);
     gScanIntercom->SetEnabled(false);
-    
+
     delete gScanEntry;
     delete gScanExit;
     delete gScanIntercom;
-    
+}
+
+
+void quit(int aIgnored) {
+    cleanup();
     printf("Finished :)\n");
-    
     exit(0);
 }
 
 
 void init() {
-    
+    gWatchdogTS = millisecs();
     dictionary * dic = iniparser_load("./config.ini");
     if(dic) {
         // hw config
@@ -122,7 +127,9 @@ void init() {
         char * COM_EXIT = iniparser_getstring(dic, "HW_CONFIG:COM_EXIT", NULL);
         char * STR_ENTRY = iniparser_getstring(dic, "HW_CONFIG:STR_ENTRY", NULL);
         char * STR_EXIT = iniparser_getstring(dic, "HW_CONFIG:STR_EXIT", NULL);
-        
+        int SCAN_INTERCOM = iniparser_getint(dic, "HW_CONFIG:SCAN_INTERCOM", 0);
+
+
         // pins
         int EPinLockRelay = iniparser_getint(dic, "HW_PINS:EPinLockRelay", -1);
         if(EPinLockRelay == -1) {
@@ -208,6 +215,15 @@ void init() {
         if(INTERCOM_DO_BUTTON_MS == -1) {
             printf("***WARNING! Bad INTERCOM_DO_BUTTON_MS in config file.\n");
         }
+
+        gWatchdogIntervalMS = iniparser_getint(dic, "SW_CONFIG:WATCHDOG_INTERVAL", 0);
+        if(gWatchdogIntervalMS != 0) {
+            printf("WATCHDOG set to %d hours.\n", gWatchdogIntervalMS);
+            gWatchdogIntervalMS *= 1000;
+            gWatchdogIntervalMS *= 3600; // convert hours to millisecs
+        }
+
+
         gScanEntry = new Scanner(COM_ENTRY, FPS_BAUD, false, STR_ENTRY, STR_WELCOME, EEventTypeEntry, EPinLockRelay, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
         gScanExit = new Scanner(COM_EXIT, FPS_BAUD, false, STR_EXIT, STR_BYE, EEventTypeExit, EPinLockRelay, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
         gScanEntry->SetCommonStrings(STR_DEFAULT0, STR_DEFAULT1, STR_FORBIDDEN0, STR_FORBIDDEN1);
@@ -224,7 +240,9 @@ void init() {
         req_init(SERVER_BASE_URL);
         gScanEntry->SetEnabled(true);
         gScanExit->SetEnabled(true);
-        gScanIntercom->SetEnabled(true);
+        if(SCAN_INTERCOM) {
+            gScanIntercom->SetEnabled(true);
+        }
 
 
         iniparser_freedict(dic);
@@ -235,6 +253,14 @@ void init() {
     }
 }
 
+
+void restart() {
+    printf("Cleanup...\n");
+    cleanup();
+    usleep(500 * 1000);
+    printf("Restart...\n");
+    init();
+}
 
 
 int enroll(int aUserID) {
@@ -418,11 +444,18 @@ static void * blink(void * aPort) {
 int _main() {
     
     init();
-
     pthread_t thr_blink;
-    
+
     do {
-        printf("$> ");
+
+        // if we got a watchdog, restart stuff when needed
+        if((gWatchdogIntervalMS > 0) && (millisecs() - gWatchdogTS) > gWatchdogIntervalMS) {
+            printf("WATCHDOG TRIGGERED !\n");
+            restart();
+        }
+
+        // prompt, ask for input, parse command
+        printf("digilock> ");
         getline();
         if (1) {
             if(strcasecmp(sBuffer, COMMAND_ENROLL) == 0) {
@@ -599,6 +632,9 @@ int _main() {
             }
             else if(strcasecmp(sBuffer, COMMAND_DUMP_EXIT) == 0) {
                 gScanExit->Dump();
+            }
+            else if(strcasecmp(sBuffer, COMMAND_RESTART) == 0) {
+                restart();
             }
             else if(strcasecmp(sBuffer, "") == 0)  {
             }

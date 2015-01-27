@@ -900,29 +900,6 @@ int FPS_GT511::GetTemplate(int fgpid, byte * aBuffer)
     if(rp->ACK) {
     
         ret = GetData(aBuffer, TEMPLATE_DATA_LEN);
-
-//        // demander un flux de bytes de taille :
-//        // taille du header 0x5A 0xA5: 2 bytes +
-//        // taille du device ID: 2 bytes +
-//        // taille du template : 498 bytes +
-//        // taille du checksum : 2 bytes =>
-//        // total 504 bytes
-//        byte * resp = GetResponse(DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + TEMPLATE_DATA_LEN + DATA_CHECKSUM_LEN);
-//        uint8_t header1 = resp[0]; // should be 0x5a
-//        uint8_t header2 = resp[1]; // should be 0xa5
-//        uint16_t deviceID = *(uint16_t *)(&resp[DATA_HEADER_LEN]); // barbu ! device ID, should be always 0x01
-//        
-//        // recup du flux de data et calcul du checksum en même temps
-//        uint16_t checksum = header1 + header2 + deviceID; // should be 256
-//        for(int i = 0; i < TEMPLATE_DATA_LEN; i++) {
-//            tmp[i] = resp[i + DATA_HEADER_LEN + DATA_DEVICE_ID_LEN];
-//            checksum += tmp[i];
-//        }
-//
-//        // recuperation du checksum renvoyé par le device (2 derniers bytes) pour vérification
-//        uint16_t device_checksum = *(uint16_t *)(&resp[DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + TEMPLATE_DATA_LEN]);
-//
-//        retcode = (checksum != device_checksum) ? -1 : TEMPLATE_DATA_LEN;
     }
     else {
         // NACK_INVALID_POS
@@ -1162,13 +1139,13 @@ int FPS_GT511::GetData(byte * aBuffer, int aExpectedByteCount) {
     
     // recup du flux de data et calcul du checksum en même temps
     uint16_t checksum = header1 + header2 + deviceID; // should be 256
-    for(int i = 0; i < TEMPLATE_DATA_LEN; i++) {
+    for(int i = 0; i < aExpectedByteCount; i++) {
         aBuffer[i] = data_packet[i + DATA_HEADER_LEN + DATA_DEVICE_ID_LEN];
         checksum += aBuffer[i];
     }
     
     // recuperation du checksum renvoyé par le device (2 derniers bytes) pour vérification
-    uint16_t device_checksum = *(uint16_t *)(&data_packet[DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + TEMPLATE_DATA_LEN]);
+    uint16_t device_checksum = *(uint16_t *)(&data_packet[DATA_HEADER_LEN + DATA_DEVICE_ID_LEN + aExpectedByteCount]);
     
     if(checksum != device_checksum ) {
         printf("GetData failed : bad checksum.\n");
