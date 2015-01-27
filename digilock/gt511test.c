@@ -10,7 +10,7 @@
 #include "gt511.h"
 
 
-int main() {
+int gt511test_main() {
    
     GT511 * device = GT511_Init("/dev/tty.usbserial", TRUE);
     if(device) {
