@@ -415,7 +415,7 @@ static void * blink(void * aPort) {
 }
 
 
-int main() {
+int _main() {
     
     init();
 

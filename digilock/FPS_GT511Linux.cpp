@@ -1079,7 +1079,7 @@ Response_Packet * FPS_GT511::GetResponse() {
         else {
             usleep(10 * 1000);
             if(millisecs() - ms > RESPONSE_TIMEOUT_MS) {
-                printf("RS232_PollComport TIMEOUT :(\n");
+                printf("RS232_PollComport TIMEOUT (read %d bytes)\n", n);
                 break;
             }
         }
@@ -1129,7 +1129,7 @@ byte * FPS_GT511::GetResponse(int aExpectedByteCount) {
             usleep(10 * 1000);
         }
     }
-    
+    delete[] buffer;
     pthread_mutex_unlock(&_mutex);
     return resp;
 }

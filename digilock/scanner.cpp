@@ -20,17 +20,6 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "scanner.h"
 
-
-//#define LCD_DEFAULT_LINE_0      (char *)"Etincelle      "
-//#define LCD_DEFAULT_LINE_1      (char *)"  Coworking    "
-//#define LCD_WELCOME_LINE_0      (char *)"Bienvenue      "
-//#define LCD_FORBIDDEN_LINE_0    (char *)"Acces non      "
-//#define LCD_FORBIDDEN_LINE_1    (char *)" autorise !    "
-
-//#define HEARTBEAT_INTERVAL_MS   5000
-//#define RELAY_INTERVAL_MS       3000
-
-//#define FPS_BAUD                9600
 static char sMode[] =   {'8', 'N', '1', 0};
 static volatile bool sLCDInit = false;
 

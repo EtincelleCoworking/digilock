@@ -13,6 +13,8 @@
 		09D1BFAE1A65436900A38B17 /* dictionary.c in Sources */ = {isa = PBXBuildFile; fileRef = 09D1BFA91A65436900A38B17 /* dictionary.c */; };
 		09D1BFAF1A65436900A38B17 /* iniparser.c in Sources */ = {isa = PBXBuildFile; fileRef = 09D1BFAB1A65436900A38B17 /* iniparser.c */; };
 		09D1BFB21A666B7100A38B17 /* intercom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09D1BFB01A666B7100A38B17 /* intercom.cpp */; };
+		09D1C0551A6FC06800A38B17 /* gt511.c in Sources */ = {isa = PBXBuildFile; fileRef = 09D1C0531A6FC06800A38B17 /* gt511.c */; };
+		09D1C0571A6FFE1800A38B17 /* gt511test.c in Sources */ = {isa = PBXBuildFile; fileRef = 09D1C0561A6FFE1800A38B17 /* gt511test.c */; };
 		6122FAF91A515D92008C2D43 /* db.c in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAEE1A515D92008C2D43 /* db.c */; };
 		6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */; };
 		6122FAFB1A515D92008C2D43 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6122FAF21A515D92008C2D43 /* main.cpp */; };
@@ -46,12 +48,14 @@
 		09D1BFB01A666B7100A38B17 /* intercom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = intercom.cpp; path = digilock/intercom.cpp; sourceTree = SOURCE_ROOT; };
 		09D1BFB11A666B7100A38B17 /* intercom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = intercom.h; path = digilock/intercom.h; sourceTree = SOURCE_ROOT; };
 		09D1BFB31A666F6800A38B17 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = digilock/base64.h; sourceTree = SOURCE_ROOT; };
+		09D1C0531A6FC06800A38B17 /* gt511.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gt511.c; path = digilock/gt511.c; sourceTree = SOURCE_ROOT; };
+		09D1C0541A6FC06800A38B17 /* gt511.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gt511.h; path = digilock/gt511.h; sourceTree = SOURCE_ROOT; };
+		09D1C0561A6FFE1800A38B17 /* gt511test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gt511test.c; path = digilock/gt511test.c; sourceTree = SOURCE_ROOT; };
 		6122FAEE1A515D92008C2D43 /* db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = db.c; path = digilock/db.c; sourceTree = SOURCE_ROOT; };
 		6122FAEF1A515D92008C2D43 /* db.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = db.h; path = digilock/db.h; sourceTree = SOURCE_ROOT; };
 		6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FPS_GT511Linux.cpp; path = digilock/FPS_GT511Linux.cpp; sourceTree = SOURCE_ROOT; };
 		6122FAF11A515D92008C2D43 /* FPS_GT511Linux.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FPS_GT511Linux.h; path = digilock/FPS_GT511Linux.h; sourceTree = SOURCE_ROOT; };
 		6122FAF21A515D92008C2D43 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = digilock/main.cpp; sourceTree = SOURCE_ROOT; };
-		6122FAF31A515D92008C2D43 /* ports.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ports.h; path = digilock/ports.h; sourceTree = SOURCE_ROOT; };
 		6122FAF41A515D92008C2D43 /* req.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = req.c; path = digilock/req.c; sourceTree = SOURCE_ROOT; };
 		6122FAF51A515D92008C2D43 /* req.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = req.h; path = digilock/req.h; sourceTree = SOURCE_ROOT; };
 		6122FAF61A515D92008C2D43 /* rs232.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = rs232.c; path = digilock/rs232.c; sourceTree = SOURCE_ROOT; };
@@ -105,13 +109,15 @@
 				6122FAF01A515D92008C2D43 /* FPS_GT511Linux.cpp */,
 				6122FAF11A515D92008C2D43 /* FPS_GT511Linux.h */,
 				6122FAF21A515D92008C2D43 /* main.cpp */,
-				6122FAF31A515D92008C2D43 /* ports.h */,
 				6122FAF41A515D92008C2D43 /* req.c */,
 				6122FAF51A515D92008C2D43 /* req.h */,
 				6122FAF61A515D92008C2D43 /* rs232.c */,
 				6122FAF71A515D92008C2D43 /* rs232.h */,
 				093D6BD71A51FD090089C595 /* scanner.cpp */,
 				093D6BD81A51FD090089C595 /* scanner.h */,
+				09D1C0531A6FC06800A38B17 /* gt511.c */,
+				09D1C0541A6FC06800A38B17 /* gt511.h */,
+				09D1C0561A6FFE1800A38B17 /* gt511test.c */,
 			);
 			name = digilock;
 			path = gt511osx;
@@ -177,8 +183,10 @@
 				6122FAF91A515D92008C2D43 /* db.c in Sources */,
 				6122FAFA1A515D92008C2D43 /* FPS_GT511Linux.cpp in Sources */,
 				09D1BFAF1A65436900A38B17 /* iniparser.c in Sources */,
+				09D1C0551A6FC06800A38B17 /* gt511.c in Sources */,
 				09D1BFB21A666B7100A38B17 /* intercom.cpp in Sources */,
 				09D1BFAE1A65436900A38B17 /* dictionary.c in Sources */,
+				09D1C0571A6FFE1800A38B17 /* gt511test.c in Sources */,
 				6122FAFC1A515D92008C2D43 /* req.c in Sources */,
 				093D6BD91A51FD090089C595 /* scanner.cpp in Sources */,
 				6122FAFB1A515D92008C2D43 /* main.cpp in Sources */,

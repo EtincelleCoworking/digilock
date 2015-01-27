@@ -55,7 +55,8 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <limits.h>
-
+#include <poll.h>
+    
 #else
 
 #include <windows.h>
