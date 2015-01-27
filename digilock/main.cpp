@@ -441,7 +441,7 @@ static void * blink(void * aPort) {
 }
 
 
-int _main() {
+int main() {
     
     init();
     pthread_t thr_blink;
