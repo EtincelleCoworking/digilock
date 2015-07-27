@@ -112,7 +112,7 @@ int req_log_fingerprint(long long aTimestamp, int aEventType, int aFingerprintID
     curl = curl_easy_init();
     if(curl) {
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1)
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
           /* First set the URL that is about to receive our POST. This URL can
            just as well be a https:// URL if that is what should receive the
@@ -151,7 +151,7 @@ int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult) {
     curl = curl_easy_init();
     if(curl) {
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1)
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
           /* First set the URL that is about to receive our POST. This URL can
            just as well be a https:// URL if that is what should receive the
@@ -186,7 +186,7 @@ int req_user(int aUserID, char * aNick, char * aEmail) {
     curl = curl_easy_init();
     if(curl) {
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1)
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
         char url[256];
         sprintf(url, "%s%s", gBaseURL, "api/user");
@@ -223,7 +223,7 @@ int req_enroll(int aUserID, int aFingerprintID, char * aData64) {
     curl = curl_easy_init();
     if(curl) {
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
-        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1)
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
         char url[256];
         sprintf(url, "%s%s%d%s", gBaseURL, "api/user/", aUserID, "/fingerprint");
