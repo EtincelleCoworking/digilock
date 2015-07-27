@@ -86,6 +86,9 @@ int send_mail(void)
 
   curl = curl_easy_init();
   if(curl) {
+        // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1)
+
     /* This is the URL for your mailserver */
     curl_easy_setopt(curl, CURLOPT_URL, "smtp://mail.example.com");
 
