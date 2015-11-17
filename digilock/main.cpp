@@ -222,7 +222,12 @@ void init() {
             gWatchdogIntervalMS *= 1000;
             gWatchdogIntervalMS *= 3600; // convert hours to millisecs
         }
-
+        
+        // buzzer sounds
+        char * INTERCOM_RING_NOCHEAT = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_NOCHEAT", "./audio/nocheat.wav");
+        char * INTERCOM_RING_CHEAT_NOK = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_CHEAT_NOK", "./audio/cheat_nok.wav");
+        char * INTERCOM_RING_CHEAT_OK = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_CHEAT_OK", "./audio/cheat_ok.wav");
+        
 
         gScanEntry = new Scanner(COM_ENTRY, FPS_BAUD, false, STR_ENTRY, STR_WELCOME, EEventTypeEntry, EPinLockRelay, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
         gScanExit = new Scanner(COM_EXIT, FPS_BAUD, false, STR_EXIT, STR_BYE, EEventTypeExit, EPinLockRelay, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
@@ -231,6 +236,8 @@ void init() {
         
         gScanIntercom = new Intercom(EPinIntercomButtonOUT, EPinIntercomBuzzerOUT, EPinIntercomBuzzerIN, INTERCOM_START, INTERCOM_STOP);
         gScanIntercom->SetCommonIntervals(INTERCOM_CHEAT_PRESS_NUM, INTERCOM_CHEAT_PRESS_INTERVAL_MS, INTERCOM_DO_BUZZER_MS, INTERCOM_DO_BUTTON_MS);
+        
+        gScanIntercom->SetRingFiles(INTERCOM_RING_CHEAT_OK, INTERCOM_RING_CHEAT_NOK, INTERCOM_RING_NOCHEAT);
         
         // catch ctrl-c
         signal(SIGINT, quit);

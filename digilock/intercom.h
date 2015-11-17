@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <inttypes.h>
 #include <stdio.h>
+#include <string.h>
 
 
 void open_relay();
@@ -25,6 +26,7 @@ public:
     Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime);
     ~Intercom();
     
+    void        SetRingFiles(char * aCheatOK, char * aCheatNOK, char * aNoCheat);
     void        SetCommonIntervals(int aCheatPressNum, int aCheatPressInterval, int aBuzzerMS, int aButtonMS);
     void        SetEnabled(bool aEnabled);
     int         GetStartTime();

@@ -41,11 +41,15 @@ long long millis() {
 #  include "wiringPi.h"
 #endif
 
-
-
 //#define LONGPRESS_ONLY
+typedef enum {
+    ERingTypeCheatOK = 0,
+    ERingTypeCheatNOK,
+    ERingTypeNoCheat
+} ERingType;
 
-static bool gLongpressOnly = true;
+
+//static bool gLongpressOnly = true;
 static int gCheatPressNum;
 static int gCheatPressInterval;
 static int gBuzzerMS;
@@ -55,12 +59,29 @@ static int gPinIntercomButtonOUT;
 static int gPinIntercomBuzzerOUT;
 static int gPinIntercomBuzzerIN;
 
+char        *sCheatOK;
+char        *sCheatNOK;
+char        *sNoCheat;
+
+
+
+
 void Intercom::SetCommonIntervals(int aCheatPressNum, int aCheatPressInterval, int aBuzzerMS, int aButtonMS) {
     gCheatPressInterval = aCheatPressInterval;
     gCheatPressNum = aCheatPressNum;
     gButtonMS = aButtonMS;
     gBuzzerMS = aBuzzerMS;
-    gLongpressOnly = false;
+//    gLongpressOnly = false;
+}
+
+
+void Intercom::SetRingFiles(char * aCheatOK, char * aCheatNOK, char * aNoCheat) {
+    sCheatOK = (char *)malloc(strlen(aCheatOK) + 1);
+    sCheatNOK = (char *)malloc(strlen(aCheatNOK) + 1);
+    sNoCheat = (char *)malloc(strlen(sNoCheat) + 1);
+    strcpy(sCheatOK, aCheatOK);
+    strcpy(sCheatNOK, aCheatNOK);
+    strcpy(sNoCheat, sNoCheat);
 }
 
 
@@ -73,18 +94,42 @@ void open_door(int aNumPresses) {
     db_insert_intercom_event(aNumPresses, true);
 }
 
-void ring_buzzer(int aNumPresses) {
-    printf("RING BUZZER START\n");
-    digitalWrite(gPinIntercomBuzzerOUT, HIGH);
-    usleep(gBuzzerMS * 1000);
-    digitalWrite(gPinIntercomBuzzerOUT, LOW);
-    printf("RING BUZZER STOP\n");
-    db_insert_intercom_event(aNumPresses, true);
+void ring_buzzer(ERingType aRingType) {
+//    printf("RING BUZZER START\n");
+//    digitalWrite(gPinIntercomBuzzerOUT, HIGH);
+//    usleep(gBuzzerMS * 1000);
+//    digitalWrite(gPinIntercomBuzzerOUT, LOW);
+//    printf("RING BUZZER STOP\n");
+    char * audio_file;
+    switch (aRingType) {
+        case ERingTypeCheatNOK:
+            audio_file = sCheatNOK;
+            break;
+        case ERingTypeCheatOK:
+            audio_file = sCheatOK;
+            break;
+        case ERingTypeNoCheat:
+            audio_file = sNoCheat;
+            break;
+    }
+    
+    
+#ifndef __APPLE__
+    int pid = fork();
+    if(pid == 0) {
+        execlp("/usr/bin/omxplayer", " ", audio_file, NULL);
+    }
+    else {
+        wait();
+    }
+#endif
+    //db_insert_intercom_event(aNumPresses, true);
 }
 
 
 void loop_open() {
     if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
+        ring_buzzer(ERingTypeNoCheat);
         open_door(-1);
     }
 }
@@ -95,7 +140,7 @@ void loop_cheat() {
     unsigned long ms = millis();
 
     if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
-        if(gLongpressOnly) {
+        /*if(gLongpressOnly) {
             while (digitalRead(gPinIntercomBuzzerIN) == HIGH) {
                 // wait till buzz is unpressed
                 usleep(10 * 1000);
@@ -110,7 +155,7 @@ void loop_cheat() {
                 ring_buzzer(-1);
             }
         }
-        else {
+        else */{
             unsigned char presses = 0;
             bool pressed = false;
             for (presses = 0; millis() - ms < gCheatPressInterval; ) {
@@ -130,10 +175,11 @@ void loop_cheat() {
             if(presses == gCheatPressNum) {
                 // pressed the right number of times during the given interval, open doors
                 open_door(gCheatPressNum);
+                ring_buzzer(ERingTypeCheatOK);
             }
             else {
                 // not press w/ correct code, make buzz ring
-                ring_buzzer(presses);
+                ring_buzzer(ERingTypeCheatNOK);
             }
         }
     }
