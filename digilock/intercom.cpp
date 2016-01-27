@@ -78,7 +78,7 @@ void Intercom::SetCommonIntervals(int aCheatPressNum, int aCheatPressInterval, i
 void Intercom::SetRingFiles(char * aCheatOK, char * aCheatNOK, char * aNoCheat) {
     sCheatOK = (char *)malloc(strlen(aCheatOK) + 1);
     sCheatNOK = (char *)malloc(strlen(aCheatNOK) + 1);
-    sNoCheat = (char *)malloc(strlen(sNoCheat) + 1);
+    sNoCheat = (char *)malloc(strlen(aNoCheat) + 1);
     strcpy(sCheatOK, aCheatOK);
     strcpy(sCheatNOK, aCheatNOK);
     strcpy(sNoCheat, sNoCheat);

@@ -27,6 +27,9 @@
 
 
 static char * gBaseURL;
+static char * gSiteStr;
+
+#define BUFFER_LEN  512
 
 long long millisecs() {
     struct timeval te;
@@ -85,8 +88,9 @@ char *url_decode(char *str) {
 }
 
 
-int req_init(char * aBaseURL) {
-
+int req_init(char * aSiteStr, char * aBaseURL) {
+    gSiteStr = (char *)malloc(strlen(aSiteStr) + 1);
+    strcpy(gSiteStr, aSiteStr);
     gBaseURL = (char *)malloc(strlen(aBaseURL) + 1);
     strcpy(gBaseURL, aBaseURL);
     curl_global_init(CURL_GLOBAL_ALL);
@@ -117,13 +121,13 @@ int req_log_fingerprint(long long aTimestamp, int aEventType, int aFingerprintID
           /* First set the URL that is about to receive our POST. This URL can
            just as well be a https:// URL if that is what should receive the
            data. */
-        char url[256];
+        char url[BUFFER_LEN];
         sprintf(url, "%s%s", gBaseURL, "api/log/fingerprint");
         curl_easy_setopt(curl, CURLOPT_URL, url);
 
         /* Now specify the POST data */
-        char str[256];
-        sprintf(str, "when=%lld&kind=%d&fingerprint_id=%d&detection_ms=%d&result=%d", aTimestamp, aEventType, aFingerprintID, aDetectionMS, aResult);
+        char str[BUFFER_LEN];
+        sprintf(str, "site=%s&when=%lld&kind=%d&fingerprint_id=%d&detection_ms=%d&result=%d", gSiteStr, aTimestamp, aEventType, aFingerprintID, aDetectionMS, aResult);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (str));
 
         /* Perform the request, res will get the return code */
@@ -156,13 +160,13 @@ int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult) {
           /* First set the URL that is about to receive our POST. This URL can
            just as well be a https:// URL if that is what should receive the
            data. */
-        char url[256];
+        char url[BUFFER_LEN];
         sprintf(url, "%s%s", gBaseURL, "api/log/intercom");
         curl_easy_setopt(curl, CURLOPT_URL, url);
 
         /* Now specify the POST data */
-        char str[256];
-        sprintf(str, "when=%lld&numpresses=%d&result=%d", aTimestamp, aNumPresses, aResult);
+        char str[BUFFER_LEN];
+        sprintf(str, "site=%s&when=%lld&numpresses=%d&result=%d", gSiteStr, aTimestamp, aNumPresses, aResult);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (str));
 
         /* Perform the request, res will get the return code */
@@ -188,28 +192,28 @@ int req_user(int aUserID, char * aNick, char * aEmail) {
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
-        char url[256];
+        char url[BUFFER_LEN];
         sprintf(url, "%s%s", gBaseURL, "api/user");
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
-        char str[256];
+        char str[BUFFER_LEN];
 
         char * enc_nick = url_encode(aNick);
         char * enc_mail = url_encode(aEmail);
 
 
-      sprintf(str, "id=%d&nick=%s&email=%s", aUserID, enc_nick, enc_mail);
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
+        sprintf(str, "site=%s&id=%d&nick=%s&email=%s", gSiteStr, aUserID, enc_nick, enc_mail);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 
-      res = curl_easy_perform(curl);
-      if(res != CURLE_OK)
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK)
             printf("req_user() failed: %s\n",  curl_easy_strerror(res));
 
-      free(enc_mail);
-      free(enc_nick);
+        free(enc_mail);
+        free(enc_nick);
 
-      curl_easy_cleanup(curl);
+        curl_easy_cleanup(curl);
     }
     return (int)res;
 }
@@ -225,15 +229,15 @@ int req_enroll(int aUserID, int aFingerprintID, char * aData64) {
         // http://stackoverflow.com/questions/9191668/error-longjmp-causes-uninitialized-stack-frame
         curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
-        char url[256];
+        char url[BUFFER_LEN];
         sprintf(url, "%s%s%d%s", gBaseURL, "api/user/", aUserID, "/fingerprint");
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
         char * enc_data64 = url_encode(aData64);
-        char str[32 + strlen(enc_data64)];
+        char str[BUFFER_LEN + strlen(enc_data64)];
 
-        sprintf(str, "id=%d&image=%s", aFingerprintID, enc_data64);
+        sprintf(str, "site=%s&id=%d&image=%s", gSiteStr, aFingerprintID, enc_data64);
 
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
 

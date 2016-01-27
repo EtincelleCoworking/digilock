@@ -19,7 +19,7 @@ extern "C" {
 #include <curl/curl.h>
 
 
-int req_init(char * aBaseURL);
+int req_init(char * aSiteStr, char * aBaseURL);
 int req_cleanup();
 int req_log_fingerprint(long long aTimestamp, int aEventType, int aFingerprintID, int aDetectionMS, int aResult);
 int req_log_intercom(long long aTimestamp, int aNumPresses, int aResult);

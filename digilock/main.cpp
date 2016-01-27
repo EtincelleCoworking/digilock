@@ -172,6 +172,7 @@ void init() {
             printf("***WARNING! Bad ELEDPinExitWait in config file.\n");
         }
         // other
+        char * SITE_STR = iniparser_getstring(dic, "SW_CONFIG:SITE_STR", NULL);
         char * SERVER_BASE_URL = iniparser_getstring(dic, "SW_CONFIG:SERVER_BASE_URL", NULL);
         char * DATABASE_FILE = iniparser_getstring(dic, "SW_CONFIG:DATABASE_FILE", NULL);
 
@@ -224,9 +225,9 @@ void init() {
         }
         
         // buzzer sounds
-        char * INTERCOM_RING_NOCHEAT = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_NOCHEAT", "./audio/nocheat.wav");
-        char * INTERCOM_RING_CHEAT_NOK = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_CHEAT_NOK", "./audio/cheat_nok.wav");
-        char * INTERCOM_RING_CHEAT_OK = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_CHEAT_OK", "./audio/cheat_ok.wav");
+        char * INTERCOM_RING_NOCHEAT = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_NOCHEAT", (char *)"./audio/nocheat.wav");
+        char * INTERCOM_RING_CHEAT_NOK = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_CHEAT_NOK", (char *)"./audio/cheat_nok.wav");
+        char * INTERCOM_RING_CHEAT_OK = iniparser_getstring(dic, "SW_CONFIG:INTERCOM_RING_CHEAT_OK", (char *)"./audio/cheat_ok.wav");
         
 
         gScanEntry = new Scanner(COM_ENTRY, FPS_BAUD, false, STR_ENTRY, STR_WELCOME, EEventTypeEntry, EPinLockRelay, ELEDPinEntryOK, ELEDPinEntryWait, ELEDPinEntryNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS);
@@ -244,7 +245,7 @@ void init() {
         
         // init sqlite, curl and devices
         db_open(DATABASE_FILE);
-        req_init(SERVER_BASE_URL);
+        req_init(SITE_STR, SERVER_BASE_URL);
         gScanEntry->SetEnabled(true);
         gScanExit->SetEnabled(true);
         if(SCAN_INTERCOM) {
