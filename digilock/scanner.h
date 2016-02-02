@@ -32,13 +32,14 @@ class Scanner
 {
     
 public:
-    Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS);
+    Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS, int aPinEmergencyButton);
     ~Scanner();
 
     void            SetCommonStrings(char * aDefault0, char * aDefault1, char * aForbidden0, char * aForbidden1);
     void            SetEnabled(bool aEnabled);
     FPS_GT511 *     GetFPS();
     bool            IsEnabled();
+    bool            IsEmergencyPressed();
     void            ShowLED(ELEDType aLEDType, bool aEnable);
     const char *    GetName();
     EEventType      GetEvent();
@@ -46,7 +47,8 @@ public:
     void            Dump();
     void            Heartbeat();
     void            ShowLCDMessage(const char * aLine0, const char * aLine1);
-
+    static void     CreateEmergencyThread();
+    
 private:
     bool            _debug;
     volatile bool   _enabled;

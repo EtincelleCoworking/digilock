@@ -36,6 +36,7 @@ static pthread_mutex_t  sLCDMutex;
 static int gRelayIntervalMS;
 static int gHeartbeatIntervalMS;
 static int gPinLockRelay;
+static int gPinEmergencyButton;
 static char gLCDForbiddenLine0[16+1]="";
 static char gLCDForbiddenLine1[16+1]="";
 static char gLCDDefaultLine0[16+1]="";
@@ -50,6 +51,31 @@ static void * thread_open_relay(void * aIgnored) {
     printf("OPEN RELAY STOP\n");
     return NULL;
 }
+
+
+static void * thread_scan_emergency(void * aIgnored) {
+#ifndef __APPLE__
+    while(1) {
+        if(digitalRead(gPinEmergencyButton)) {
+            // emergency button pressed ! open relay.
+            printf("OPEN EMERGENCY START\n");
+            digitalWrite(gPinLockRelay, HIGH);
+            usleep(gRelayIntervalMS * 1000);
+            digitalWrite(gPinLockRelay, LOW);
+            printf("OPEN EMERGENCY STOP\n");
+        }
+        delay(10);
+    }
+#endif
+    return NULL;
+}
+
+
+void Scanner::CreateEmergencyThread() {
+    pthread_t thr;
+    pthread_create(&thr, NULL, thread_scan_emergency, NULL);
+}
+
 
 static void * scan_thread(void * aScanner) {
     Scanner * scanner = (Scanner *)aScanner;
@@ -68,6 +94,7 @@ static void * scan_thread(void * aScanner) {
             led = !led;
             fps->SetLED(led);
         }
+        
         if(fps->IsPressFinger()) {
             
             long long ts = millisecs();
@@ -169,7 +196,6 @@ bool Scanner::IsEnabled() {
     return _enabled;
 }
 
-
 void lcd_default() {
 #ifndef __APPLE__
     lcd_i2c_clear(&sLCD);
@@ -223,7 +249,6 @@ static void * thread_shut_leds(void * aScanner) {
 //    scanner->StopLCDThread();
 //    printf("led thread stop\n");
     pthread_exit(NULL);
-
 }
 
 
@@ -311,7 +336,7 @@ void Scanner::SetEnabled(bool aEnabled) {
 }
 
 
-Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aMessage, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS) {
+Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aMessage, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS, int aPinEmergencyButton) {
     strcpy(_name, aName);
     strcpy(_message, aMessage);
     _event = aEventType;
@@ -321,7 +346,7 @@ Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aNam
     
     gRelayIntervalMS = aRelayIntervalMS;
     gHeartbeatIntervalMS = aHeartbeatIntervalMS;
-    gPinLockRelay = aPinLockRelay;
+    gPinEmergencyButton = aPinEmergencyButton;
     
     _fps = new FPS_GT511(aPortName, aBaudRate, sMode);
     _fps->UseSerialDebug = aDebug;
@@ -344,6 +369,7 @@ Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aNam
     pinMode (_led_ok, OUTPUT);
     pinMode (_led_wait, OUTPUT);
     pinMode (_led_nok, OUTPUT);
+    pinMode (_pin_emergency_button, INPUT);
 #endif
 }
 
