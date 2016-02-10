@@ -41,7 +41,7 @@ static char gLCDForbiddenLine0[16+1]="";
 static char gLCDForbiddenLine1[16+1]="";
 static char gLCDDefaultLine0[16+1]="";
 static char gLCDDefaultLine1[16+1]="";
-
+static bool gUseLCD;
 
 static void * thread_open_relay(void * aIgnored) {
     printf("OPEN RELAY START\n");
@@ -336,7 +336,7 @@ void Scanner::SetEnabled(bool aEnabled) {
 }
 
 
-Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aMessage, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS, int aPinEmergencyButton) {
+Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aMessage, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS, int aPinEmergencyButton, int aUseLCD) {
     strcpy(_name, aName);
     strcpy(_message, aMessage);
     _event = aEventType;
@@ -344,16 +344,18 @@ Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aNam
     _led_wait = aLedWait;
     _led_nok = aLedNOK;
     
+    // TODO: create static routine to init these
     gRelayIntervalMS = aRelayIntervalMS;
     gHeartbeatIntervalMS = aHeartbeatIntervalMS;
     gPinEmergencyButton = aPinEmergencyButton;
+    gUseLCD = !!aUseLCD;
     
     _fps = new FPS_GT511(aPortName, aBaudRate, sMode);
     _fps->UseSerialDebug = aDebug;
     _fps->Open();
 
 #ifndef __APPLE__
-    if(sLCDInit == false) {
+    if(gUseLCD == true && sLCDInit == false) {
         if(lcd_i2c_setup(&sLCD, LCD_I2C_PCF8574_ADDRESS_DEFAULT) == -1) {
             // TODO error
 

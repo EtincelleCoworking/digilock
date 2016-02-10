@@ -32,7 +32,7 @@ class Scanner
 {
     
 public:
-    Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS, int aPinEmergencyButton);
+    Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aName, const char * aWelcome, EEventType aEventType, int aPinLockRelay, int aLedOK, int aLedWait, int aLedNOK, int aRelayIntervalMS, int aHeartbeatIntervalMS, int aPinEmergencyButton, int aUseLCD);
     ~Scanner();
 
     void            SetCommonStrings(char * aDefault0, char * aDefault1, char * aForbidden0, char * aForbidden1);
