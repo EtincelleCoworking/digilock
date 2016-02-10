@@ -369,7 +369,7 @@ Scanner::Scanner(char * aPortName, int aBaudRate, bool aDebug, const char * aNam
     pinMode (_led_ok, OUTPUT);
     pinMode (_led_wait, OUTPUT);
     pinMode (_led_nok, OUTPUT);
-    pinMode (_pin_emergency_button, INPUT);
+    pinMode (gPinEmergencyButton, INPUT);
 #endif
 }
 
