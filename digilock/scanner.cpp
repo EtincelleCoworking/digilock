@@ -388,7 +388,7 @@ void Scanner::SetCommonStrings(char *aDefault0, char *aDefault1, char *aForbidde
 Scanner::~Scanner() {
     _fps->Close();
     delete _fps;
-    if(sLCDInit == true) {
+    if(gUseLCD == true && sLCDInit == true) {
         sLCDInit = false;
 #ifndef __APPLE__
         lcd_i2c_clear(&sLCD);
