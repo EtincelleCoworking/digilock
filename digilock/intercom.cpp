@@ -81,7 +81,7 @@ void Intercom::SetRingFiles(char * aCheatOK, char * aCheatNOK, char * aNoCheat) 
     sNoCheat = (char *)malloc(strlen(aNoCheat) + 1);
     strcpy(sCheatOK, aCheatOK);
     strcpy(sCheatNOK, aCheatNOK);
-    strcpy(sNoCheat, sNoCheat);
+    strcpy(sNoCheat, aNoCheat);
 }
 
 
