@@ -23,7 +23,7 @@ void open_relay();
 
 class Intercom {
 public:
-    Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime);
+    Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime, char * location_slug, char * location_key);
     ~Intercom();
     
     void        SetRingFiles(char * aCheatOK, char * aCheatNOK, char * aNoCheat);
@@ -37,6 +37,8 @@ private:
     volatile bool        _enabled;
     int         _end_time;
     int         _start_time;
+    char *      _location_slug;
+    char *      _location_key;
 };
 
 

@@ -127,6 +127,8 @@ void init() {
         char * COM_EXIT = iniparser_getstring(dic, "HW_CONFIG:COM_EXIT", NULL);
         char * STR_ENTRY = iniparser_getstring(dic, "HW_CONFIG:STR_ENTRY", NULL);
         char * STR_EXIT = iniparser_getstring(dic, "HW_CONFIG:STR_EXIT", NULL);
+        char * LOCATION_SLUG = iniparser_getstring(dic, "LOCATION:SLUG", NULL);
+        char * LOCATION_KEY = iniparser_getstring(dic, "LOCATION:KEY", NULL);
         int SCAN_INTERCOM = iniparser_getint(dic, "HW_CONFIG:SCAN_INTERCOM", 0);
         int USE_LCD = iniparser_getint(dic, "HW_CONFIG:USE_LCD", 0);
 
