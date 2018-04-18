@@ -42,12 +42,6 @@ long long millis() {
 #endif
 
 //#define LONGPRESS_ONLY
-typedef enum {
-    ERingTypeCheatOK = 0,
-    ERingTypeCheatNOK,
-    ERingTypeNoCheat
-} ERingType;
-
 
 //static bool gLongpressOnly = true;
 static int gCheatPressNum;
@@ -123,7 +117,7 @@ void Intercom::ring_buzzer(ERingType aRingType) {
         execlp("/usr/bin/omxplayer", " ", audio_file, NULL);
     }
     else {
-        wait();
+        //wait();
     }
 #endif
     //db_insert_intercom_event(aNumPresses, true);
@@ -133,7 +127,7 @@ void Intercom::ring_buzzer(ERingType aRingType) {
 void Intercom::loop_open() {
     if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
         this->ring_buzzer(ERingTypeNoCheat);
-        this->open_door(-1, _location_slug, _location_key);
+        this->open_door(-1);
     }
 }
 

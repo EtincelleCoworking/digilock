@@ -20,6 +20,11 @@
 
 void open_relay();
 
+typedef enum {
+	    ERingTypeCheatOK = 0,
+	        ERingTypeCheatNOK,
+		    ERingTypeNoCheat
+} ERingType;
 
 class Intercom {
 public:
@@ -32,6 +37,11 @@ public:
     int         GetStartTime();
     int         GetEndTime();
     bool        IsEnabled();
+    void        loop_cheat();
+    void        loop_open();
+    void        ring_buzzer(ERingType aRingType);
+    void        open_door(int aNumPresses);
+
 private:
     pthread_t   _thread;
     volatile bool        _enabled;
