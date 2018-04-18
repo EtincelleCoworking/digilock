@@ -258,6 +258,12 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
 }
 
 int req_intercom_api(char * location_slug, char * location_key) {
+    if(strlen(location_slug) == 0){
+	printf("WARNING - LOCATION_SLUG is empty - ALWAYS reply Yes to remains compatible with other systems\n");
+	return 1;
+    }
+    
+
     CURL *curl;
     CURLcode res = (CURLcode)-1;
     std::string readBuffer;
@@ -270,7 +276,10 @@ int req_intercom_api(char * location_slug, char * location_key) {
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
     char url[BUFFER_LEN];
-    sprintf(url, "%s/api/1.0/intercom/%s/%s/allowed", gBaseURL, location_slug, location_key);
+    sprintf(url, "https://intranet.coworking-toulouse.com/api/1.0/intercom/%s/%s/allowed", location_slug, location_key);
+    
+    printf("API URL: %s\n", url);
+    
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
 
@@ -280,12 +289,12 @@ int req_intercom_api(char * location_slug, char * location_key) {
 
     res = curl_easy_perform(curl);
 
-    printf("API CALL : %s\n", readBuffer);
+    printf("API CALL : %s\n", readBuffer.c_str());
     if(res != CURLE_OK)
         printf("req_fgp() failed: %s\n",  curl_easy_strerror(res));
 
     curl_easy_cleanup(curl);
-    return (int)res;
+    return (strcmp(readBuffer.c_str(), "Yes") == 0);
 }
 
 

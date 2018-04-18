@@ -131,7 +131,6 @@ void init() {
         char * LOCATION_KEY = iniparser_getstring(dic, "LOCATION:KEY", NULL);
         int SCAN_INTERCOM = iniparser_getint(dic, "HW_CONFIG:SCAN_INTERCOM", 0);
         int USE_LCD = iniparser_getint(dic, "HW_CONFIG:USE_LCD", 0);
-
         // pins
         int EPinLockRelay = iniparser_getint(dic, "HW_PINS:EPinLockRelay", -1);
         if(EPinLockRelay == -1) {
@@ -250,7 +249,7 @@ void init() {
         // init sqlite, curl and devices
         db_open(DATABASE_FILE);
         req_init(SITE_STR, SERVER_BASE_URL);
-        
+
         // create emergency button thread
         Scanner::CreateEmergencyThread();
         

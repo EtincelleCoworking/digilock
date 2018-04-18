@@ -84,11 +84,15 @@ void Intercom::open_door(int aNumPresses) {
     int api_result;
     api_result = req_intercom_api(_location_slug, _location_key);
     printf("API call result: %d\n", api_result);
-    digitalWrite(gPinIntercomButtonOUT, HIGH);
-    usleep(gButtonMS * 1000);
-    digitalWrite(gPinIntercomButtonOUT, LOW);
-    printf("OPEN INTERCOM STOP\n");
-    db_insert_intercom_event(aNumPresses, true);
+    if(api_result == 1){
+    	digitalWrite(gPinIntercomButtonOUT, HIGH);
+    	usleep(gButtonMS * 1000);
+    	digitalWrite(gPinIntercomButtonOUT, LOW);
+    	printf("OPEN INTERCOM STOP\n");
+    	db_insert_intercom_event(aNumPresses, true);
+    }else{
+    	printf("API TOLD US NOT TO OPEN\n");
+    }
 }
 
 void Intercom::ring_buzzer(ERingType aRingType) {
