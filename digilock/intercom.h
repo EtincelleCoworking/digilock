@@ -20,10 +20,15 @@
 
 void open_relay();
 
+typedef enum {
+	    ERingTypeCheatOK = 0,
+	        ERingTypeCheatNOK,
+		    ERingTypeNoCheat
+} ERingType;
 
 class Intercom {
 public:
-    Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime);
+    Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime, char * location_slug, char * location_key);
     ~Intercom();
     
     void        SetRingFiles(char * aCheatOK, char * aCheatNOK, char * aNoCheat);
@@ -32,11 +37,18 @@ public:
     int         GetStartTime();
     int         GetEndTime();
     bool        IsEnabled();
+    void        loop_cheat();
+    void        loop_open();
+    void        ring_buzzer(ERingType aRingType);
+    void        open_door(int aNumPresses);
+
 private:
     pthread_t   _thread;
     volatile bool        _enabled;
     int         _end_time;
     int         _start_time;
+    char *      _location_slug;
+    char *      _location_key;
 };
 
 

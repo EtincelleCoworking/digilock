@@ -42,12 +42,6 @@ long long millis() {
 #endif
 
 //#define LONGPRESS_ONLY
-typedef enum {
-    ERingTypeCheatOK = 0,
-    ERingTypeCheatNOK,
-    ERingTypeNoCheat
-} ERingType;
-
 
 //static bool gLongpressOnly = true;
 static int gCheatPressNum;
@@ -85,8 +79,11 @@ void Intercom::SetRingFiles(char * aCheatOK, char * aCheatNOK, char * aNoCheat) 
 }
 
 
-void open_door(int aNumPresses) {
+void Intercom::open_door(int aNumPresses) {
     printf("OPEN INTERCOM START\n");
+    int api_result;
+    api_result = req_intercom_api(_location_slug, _location_key);
+    printf("API call result: %d\n", api_result);
     digitalWrite(gPinIntercomButtonOUT, HIGH);
     usleep(gButtonMS * 1000);
     digitalWrite(gPinIntercomButtonOUT, LOW);
@@ -94,7 +91,7 @@ void open_door(int aNumPresses) {
     db_insert_intercom_event(aNumPresses, true);
 }
 
-void ring_buzzer(ERingType aRingType) {
+void Intercom::ring_buzzer(ERingType aRingType) {
 //    printf("RING BUZZER START\n");
 //    digitalWrite(gPinIntercomBuzzerOUT, HIGH);
 //    usleep(gBuzzerMS * 1000);
@@ -120,22 +117,22 @@ void ring_buzzer(ERingType aRingType) {
         execlp("/usr/bin/omxplayer", " ", audio_file, NULL);
     }
     else {
-        wait();
+        //wait();
     }
 #endif
     //db_insert_intercom_event(aNumPresses, true);
 }
 
 
-void loop_open() {
+void Intercom::loop_open() {
     if(digitalRead(gPinIntercomBuzzerIN) == HIGH) {
-        ring_buzzer(ERingTypeNoCheat);
-        open_door(-1);
+        this->ring_buzzer(ERingTypeNoCheat);
+        this->open_door(-1);
     }
 }
 
 
-void loop_cheat() {
+void Intercom::loop_cheat() {
     
     unsigned long ms = millis();
 
@@ -174,12 +171,12 @@ void loop_cheat() {
 
             if(presses == gCheatPressNum) {
                 // pressed the right number of times during the given interval, open doors
-                open_door(gCheatPressNum);
-                ring_buzzer(ERingTypeCheatOK);
+                this->open_door(gCheatPressNum);
+                this->ring_buzzer(ERingTypeCheatOK);
             }
             else {
                 // not press w/ correct code, make buzz ring
-                ring_buzzer(ERingTypeCheatNOK);
+                this->ring_buzzer(ERingTypeCheatNOK);
             }
         }
     }
@@ -192,10 +189,10 @@ void * loop_thread(void * aIntercom) {
         time_t t = time(NULL);
         struct tm timez = *localtime(&t);
         if(timez.tm_hour >= intercom->GetStartTime() && timez.tm_hour <= intercom->GetEndTime()) {
-            loop_open();
+            intercom->loop_open();
         }
         else {
-            loop_cheat();
+            intercom->loop_cheat();
         }
         usleep(10 * 1000);
     }
@@ -204,7 +201,7 @@ void * loop_thread(void * aIntercom) {
 }
 
 
-Intercom::Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime) {
+Intercom::Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPinIntercomBuzzerIN, int aStartTime, int aEndTime, char * location_slug, char * location_key) {
     _start_time = aStartTime;
     _end_time = aEndTime;
 
@@ -215,6 +212,9 @@ Intercom::Intercom(int aPinIntercomButtonOUT, int aPinIntercomBuzzerOUT, int aPi
     pinMode(gPinIntercomButtonOUT, OUTPUT);
     pinMode(gPinIntercomBuzzerOUT, OUTPUT);
     pinMode(gPinIntercomBuzzerIN, INPUT);
+
+    _location_slug = location_slug;
+    _location_key = location_key;
 }
 
 Intercom::~Intercom() {
