@@ -1,58 +1,46 @@
 
-# Install instructions for Espace-W
-
-## Download the code and compile
-```bash
-cd
-git clone https://github.com/EtincelleCoworking/digilock
-cd digilock/digilock
-git checkout espace-w
-sudo apt-get install libcurl4-openssl-dev libsqlite3-dev
-make
-```
-
-## Configure
-
-You can run this command to check your Raspberry Pi's pinout:
-(only use the pin numbers in the 'wPi' column)
-```bash
-gpio readall
-
-```
-
-Configure the pins using wiringPi numbering, the output of the command above should help:
-```bash
-# Intercom detector (attached to optocoupler board)
-# Must match EPinIntercomButtonOUT in config.ini
-gpio mode 23 out
-
-# Door open command (attached to relay board)
-# Must match EPinIntercomButtonOUT in config.ini 
-gpio mode 28 in 
-
-```
-
-Edit the config.ini file, you must update these 5 values:
-```bash
-nano config.ini
-```
-```
-# tell digilock to start scanning intercom when launched
-SCAN_INTERCOM = 1;
-
-# API stuff
-SLUG = "<my_slug>";
-KEY = "<my_key>";
-
-# Intercom detector (attached to optocoupler board)
-EPinIntercomBuzzerIN = 28;
-
-# Door open command (attached to relay board)
-EPinIntercomButtonOUT = 23;
-
-```
-
-# Run !
-```
-./digilock
-```
+Start or stop a communication test: fingerprint modules should blink<br/>
+<b>blink start<br/>
+blink stop<br/>
+</b><br/>
+Quit the program<br/>
+<b>quit<br/>
+</b><br/>
+Stop scanning threads and enroll a new user<br/>
+<b>enroll<br/>
+</b><br/>
+Count the number of registered fingerprints on the devices<br/>
+<b>count<br/>
+</b><br/>
+Start or stop entry or exit scan thread<br/>
+<b>entry stop<br/>
+exit stop<br/>
+entry start<br/>
+exit start<br/>
+</b><br/>
+Start or stop intercom scan thread<br/>
+<b>intercom stop<br/>
+intercom start<br/>
+</b><br/>
+Dumps the fingerprint data to the current path<br/>
+<b>dump entry<br/>
+dump exit<br/>
+</b><br/>
+Creates a new user<br/>
+<b>create user<br/>
+</b><br/>
+Delete all fingerprints from the devices (will not touch the database)<br/>
+<b>delete all fingerprints<br/>
+</b><br/>
+Delete a single fingerprint<br/>
+<b>delete fingerprint<br/>
+</b><br/>
+Delete a user with its fingerprint data<br/>
+<b>delete user<br/>
+</b><br/>
+Copy exit fingerprint to entry fingerprint<br/>
+<b>sync fingerprints<br/>
+</b><br/>
+Delete then reload the fingerprints from the database<br/>
+<b>reload fingerprints<br/>
+</b><br/>
