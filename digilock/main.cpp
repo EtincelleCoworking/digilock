@@ -127,9 +127,10 @@ void init() {
         char * COM_EXIT = iniparser_getstring(dic, "HW_CONFIG:COM_EXIT", NULL);
         char * STR_ENTRY = iniparser_getstring(dic, "HW_CONFIG:STR_ENTRY", NULL);
         char * STR_EXIT = iniparser_getstring(dic, "HW_CONFIG:STR_EXIT", NULL);
+        char * LOCATION_SLUG = iniparser_getstring(dic, "LOCATION:SLUG", NULL);
+        char * LOCATION_KEY = iniparser_getstring(dic, "LOCATION:KEY", NULL);
         int SCAN_INTERCOM = iniparser_getint(dic, "HW_CONFIG:SCAN_INTERCOM", 0);
         int USE_LCD = iniparser_getint(dic, "HW_CONFIG:USE_LCD", 0);
-
         // pins
         int EPinLockRelay = iniparser_getint(dic, "HW_PINS:EPinLockRelay", -1);
         if(EPinLockRelay == -1) {
@@ -238,7 +239,7 @@ void init() {
         gScanExit = new Scanner(COM_EXIT, FPS_BAUD, false, STR_EXIT, STR_BYE, EEventTypeExit, EPinLockRelay, ELEDPinExitOK, ELEDPinExitWait, ELEDPinExitNOK, RELAY_INTERVAL_MS, HEARTBEAT_INTERVAL_MS, EPinEmergencyButton, USE_LCD);
         gScanEntry->SetCommonStrings(STR_DEFAULT0, STR_DEFAULT1, STR_FORBIDDEN0, STR_FORBIDDEN1);
         
-        gScanIntercom = new Intercom(EPinIntercomButtonOUT, EPinIntercomBuzzerOUT, EPinIntercomBuzzerIN, INTERCOM_START, INTERCOM_STOP);
+        gScanIntercom = new Intercom(EPinIntercomButtonOUT, EPinIntercomBuzzerOUT, EPinIntercomBuzzerIN, INTERCOM_START, INTERCOM_STOP, LOCATION_SLUG, LOCATION_KEY);
         gScanIntercom->SetCommonIntervals(INTERCOM_CHEAT_PRESS_NUM, INTERCOM_CHEAT_PRESS_INTERVAL_MS, INTERCOM_DO_BUZZER_MS, INTERCOM_DO_BUTTON_MS);
         gScanIntercom->SetRingFiles(INTERCOM_RING_CHEAT_OK, INTERCOM_RING_CHEAT_NOK, INTERCOM_RING_NOCHEAT);
         
@@ -248,7 +249,7 @@ void init() {
         // init sqlite, curl and devices
         db_open(DATABASE_FILE);
         req_init(SITE_STR, SERVER_BASE_URL);
-        
+
         // create emergency button thread
         Scanner::CreateEmergencyThread();
         
