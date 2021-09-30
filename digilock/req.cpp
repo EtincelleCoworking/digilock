@@ -276,12 +276,13 @@ int req_intercom_api(char * location_slug, char * location_key) {
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
 
     char url[BUFFER_LEN];
-    sprintf(url, "https://intranet.coworking-toulouse.com/api/1.0/intercom/%s/%s/allowed", location_slug, location_key);
+    sprintf(url, "https://etincelle.at/api/intercom/toulouse-wilson3");
     
     printf("API URL: %s\n", url);
     
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 
     readBuffer.clear();
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
